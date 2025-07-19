@@ -4,13 +4,17 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+  actions: read
+
 jobs:
   sync-version:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.PAT_TOKEN }}
           fetch-depth: 0
 
       - name: Get version from Cargo.toml
@@ -75,7 +79,7 @@ jobs:
               --target $VERSION
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
       - name: Notify completion
         run: |

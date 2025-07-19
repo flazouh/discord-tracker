@@ -1,327 +1,396 @@
-# Discord Tracker - Rust Edition
+# Discord Pipeline Tracker GitHub Action
 
-A high-performance, production-ready Discord pipeline tracker written in Rust. This tool creates and updates a single Discord embed message to track CI/CD pipeline progress in real-time.
+A production-ready GitHub Action that tracks CI/CD pipeline progress in Discord with real-time updates. This action provides seamless integration between your GitHub workflows and Discord channels, keeping your team informed about build status, deployment progress, and pipeline failures.
 
-## 🚀 Features
+## Features
 
-- **⚡ Blazing Fast**: Written in Rust for maximum performance
-- **🔒 Memory Safe**: Compile-time guarantees prevent common bugs
-- **📦 Single Binary**: No runtime dependencies, easy deployment
-- **🔄 Real-time Updates**: Updates a single embed message progressively
-- **📊 Progress Tracking**: Shows step-by-step progress with status indicators
-- **🛡️ Error Handling**: Comprehensive error handling with retry logic
-- **📝 Structured Logging**: Built-in logging with configurable levels
-- **🔧 CLI Interface**: Clean command-line interface with subcommands
+- 🚀 **Real-time Updates**: Send live updates to Discord as your pipeline progresses
+- 🔄 **Step Tracking**: Track individual steps with progress indicators
+- ✅ **Success/Failure Handling**: Automatic notifications for pipeline completion or failures
+- 🎯 **PR Integration**: Link pipeline updates to specific pull requests
+- 📊 **Rich Embeds**: Beautiful Discord embeds with progress bars and status indicators
+- 🔒 **Secure**: Uses Discord bot tokens for secure communication
 
-## 📋 Prerequisites
+## Quick Start
 
-1. **Discord Bot**: Create a Discord bot with required permissions
-2. **Bot Token**: Get your Discord bot token
-3. **Channel Access**: Bot must have access to target channel
+### 1. Set up Discord Bot
 
-## 🛠️ Installation
+1. Create a Discord application at [Discord Developer Portal](https://discord.com/developers/applications)
+2. Create a bot and copy the bot token
+3. Invite the bot to your Discord server with appropriate permissions
+4. Note the channel ID where you want to receive updates
 
-### Download Pre-built Binary (Recommended)
+### 2. Add Secrets to Your Repository
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/fluentai/discord-tracker/releases):
+Go to your repository settings → Secrets and variables → Actions, and add:
 
-```bash
-# Linux
-curl -L -o discord-tracker https://github.com/fluentai/discord-tracker/releases/latest/download/discord-tracker-linux-x64
-chmod +x discord-tracker
+- `DISCORD_BOT_TOKEN`: Your Discord bot token
+- `DISCORD_CHANNEL_ID`: The Discord channel ID where updates should be sent
 
-# macOS
-curl -L -o discord-tracker https://github.com/fluentai/discord-tracker/releases/latest/download/discord-tracker-macos-x64
-chmod +x discord-tracker
-
-# Windows
-# Download discord-tracker-windows-x64.exe from releases
-```
-
-### Build from Source
-
-```bash
-# Clone the repository
-git clone https://github.com/fluentai/discord-tracker.git
-cd discord-tracker
-
-# Build the binary
-cargo build --release
-
-# The binary will be available at: target/release/discord-tracker
-```
-
-### Install via Cargo (Development)
-
-```bash
-# Install globally
-cargo install --git https://github.com/fluentai/discord-tracker.git
-
-# Now you can use it from anywhere
-discord-tracker --help
-```
-
-## 🔧 Configuration
-
-### Environment Variables
-
-- `DISCORD_BOT_TOKEN`: Your Discord bot token (required)
-- `DISCORD_CHANNEL_ID`: Target Discord channel ID (required)
-
-### Bot Permissions
-
-Your Discord bot needs these permissions:
-- `Send Messages`
-- `Embed Links`
-- `Manage Messages` (to edit its own messages)
-
-## 📖 Usage
-
-### Basic Commands
-
-```bash
-# Initialize pipeline tracker
-./discord-tracker init \
-  --pr-number "123" \
-  --pr-title "Add new feature" \
-  --author "username" \
-  --repository "owner/repo" \
-  --branch "main"
-
-# Update step progress
-./discord-tracker step \
-  --step-number 1 \
-  --total-steps 10 \
-  --step-name "Code Checkout" \
-  --status "success" \
-  --additional-info "Commit:abc123,Repository:owner/repo"
-
-# Complete pipeline
-./discord-tracker complete
-
-# Handle failure
-./discord-tracker fail \
-  --step-name "Docker Build" \
-  --error-message "Build failed due to syntax error"
-```
-
-### GitHub Actions Integration
-
-#### Method 1: Direct Download (Recommended)
+### 3. Use the Action in Your Workflow
 
 ```yaml
 name: CI/CD Pipeline
 
 on:
   pull_request:
-    types: [closed]
     branches: [main]
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    env:
-      DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-      DISCORD_CHANNEL_ID: "1395895302564872263"
-    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download Discord Tracker
-        run: |
-          curl -L -o discord-tracker https://github.com/flazouh/discord-tracker/releases/download/v0.2.1/discord-tracker-linux-x64
-          chmod +x discord-tracker
-
+      # Initialize pipeline tracking
       - name: Initialize Discord Tracker
+        uses: flazouh/discord-tracker-action@v1
+        with:
+          action: 'init'
+          pr_number: ${{ github.event.number }}
+          pr_title: ${{ github.event.pull_request.title }}
+          author: ${{ github.event.pull_request.user.login }}
+          repository: ${{ github.repository }}
+          branch: ${{ github.head_ref }}
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Build step
+      - name: Build Application
         run: |
-          ./discord-tracker init \
-            --pr-number "${{ github.event.pull_request.number }}" \
-            --pr-title "${{ github.event.pull_request.title }}" \
-            --author "${{ github.event.pull_request.user.login }}" \
-            --repository "${{ github.repository }}" \
-            --branch "${{ github.ref_name }}"
+          echo "Building application..."
+          sleep 10  # Simulate build time
+        continue-on-error: true
 
-      - name: Update Step - Code Checkout
+      - name: Update Build Step
+        uses: flazouh/discord-tracker-action@v1
+        if: always()
+        with:
+          action: 'step'
+          step_number: '1'
+          total_steps: '3'
+          step_name: 'Build'
+          status: ${{ job.status == 'success' && 'success' || 'failed' }}
+          additional_info: '{"duration":"30s","artifacts":"build.zip"}'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Test step
+      - name: Run Tests
         run: |
-          ./discord-tracker step \
-            --step-number 1 \
-            --total-steps 10 \
-            --step-name "Code Checkout" \
-            --status "success" \
-            --additional-info "Commit:${{ github.sha }},Repository:${{ github.repository }}"
+          echo "Running tests..."
+          sleep 5  # Simulate test time
 
-      # ... more steps ...
+      - name: Update Test Step
+        uses: flazouh/discord-tracker-action@v1
+        with:
+          action: 'step'
+          step_number: '2'
+          total_steps: '3'
+          step_name: 'Tests'
+          status: 'success'
+          additional_info: '{"coverage":"85%","tests":"42 passed"}'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
 
+      # Deploy step
+      - name: Deploy
+        run: |
+          echo "Deploying..."
+          sleep 8  # Simulate deployment time
+
+      - name: Update Deploy Step
+        uses: flazouh/discord-tracker-action@v1
+        with:
+          action: 'step'
+          step_number: '3'
+          total_steps: '3'
+          step_name: 'Deploy'
+          status: 'success'
+          additional_info: '{"environment":"production","url":"https://app.example.com"}'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Complete pipeline
       - name: Complete Pipeline
-        run: |
-          ./discord-tracker complete
+        uses: flazouh/discord-tracker-action@v1
+        if: success()
+        with:
+          action: 'complete'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
 
-      - name: Handle Failure
+      # Handle failure
+      - name: Handle Pipeline Failure
+        uses: flazouh/discord-tracker-action@v1
         if: failure()
-        run: |
-          ./discord-tracker fail \
-            --step-name "Pipeline Step" \
-            --error-message "An error occurred during pipeline execution"
+        with:
+          action: 'fail'
+          step_name: 'Pipeline'
+          error_message: 'Pipeline failed during execution'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
 ```
 
-#### Method 2: Using Latest Release
+## Action Inputs
+
+| Input | Description | Required | Default |
+|-------|-------------|----------|---------|
+| `action` | The action to perform (`init`, `step`, `complete`, `fail`) | Yes | - |
+| `pr_number` | Pull request number | No* | - |
+| `pr_title` | Pull request title | No* | - |
+| `author` | PR author username | No* | - |
+| `repository` | Repository name (e.g., "owner/repo") | No* | - |
+| `branch` | Branch name | No* | - |
+| `step_number` | Current step number (1-based) | No* | - |
+| `total_steps` | Total number of steps | No* | - |
+| `step_name` | Name of the current step | No* | - |
+| `status` | Step status (`success`, `pending`, `failed`) | No* | - |
+| `additional_info` | Additional information as JSON string | No | - |
+| `error_message` | Error message for failed steps | No* | - |
+| `discord_bot_token` | Discord bot token | Yes | - |
+| `discord_channel_id` | Discord channel ID | Yes | - |
+
+*Required for specific actions (see Action Types below)
+
+## Action Types
+
+### `init` - Initialize Pipeline
+Initializes a new pipeline tracker for a pull request.
+
+**Required inputs:** `pr_number`, `pr_title`, `author`, `repository`, `branch`
 
 ```yaml
-      - name: Download Discord Tracker
-        run: |
-          curl -L -o discord-tracker https://github.com/flazouh/discord-tracker/releases/latest/download/discord-tracker-linux-x64
-          chmod +x discord-tracker
+- uses: flazouh/discord-tracker-action@v1
+  with:
+    action: 'init'
+    pr_number: '123'
+    pr_title: 'Add new feature'
+    author: 'username'
+    repository: 'owner/repo'
+    branch: 'feature/new-feature'
+    discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+    discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
 ```
 
-#### Method 3: Using Reusable Workflow
+### `step` - Update Step Progress
+Updates the progress of a specific pipeline step.
+
+**Required inputs:** `step_number`, `total_steps`, `step_name`, `status`
 
 ```yaml
-name: CI/CD Pipeline
-
-on:
-  pull_request:
-    types: [closed]
-    branches: [main]
-
-jobs:
-  download-tracker:
-    uses: flazouh/discord-tracker/.github/workflows/download-binary.yml@main
-    with:
-      version: 'v0.2.1'
-      platform: 'linux-x64'
-
-  build-and-deploy:
-    needs: download-tracker
-    runs-on: ubuntu-latest
-    env:
-      DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-      DISCORD_CHANNEL_ID: "1395895302564872263"
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download Discord Tracker
-        run: |
-          curl -L -o discord-tracker https://github.com/flazouh/discord-tracker/releases/download/v0.2.1/discord-tracker-linux-x64
-          chmod +x discord-tracker
-
-      # ... rest of your pipeline steps ...
+- uses: flazouh/discord-tracker-action@v1
+  with:
+    action: 'step'
+    step_number: '1'
+    total_steps: '3'
+    step_name: 'Build'
+    status: 'success'
+    additional_info: '{"duration":"30s","coverage":"85%"}'
+    discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+    discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
 ```
 
-## 📊 Example Output
+### `complete` - Complete Pipeline
+Marks the pipeline as successfully completed.
 
-The tracker creates a Discord embed that looks like this:
-
-```
-🚀 CI/CD Pipeline Progress
-Tracking deployment pipeline execution...
-
-📊 Progress: 5/10 (50%)
-⏱️ Started: 2024-01-15T10:30:00.000Z
-
-🔗 PR Details: #123 - Add new feature
-👤 Author: username
-📁 Repository: owner/repo
-🌿 Branch: main
-
-📋 Steps:
-✅ 1. Code Checkout - Commit:abc123, Repository:owner/repo
-✅ 2. GCP Authentication - Project:my-project, Region:us-central1
-✅ 3. Cloud SDK Setup - Components:gke-gcloud-auth-plugin, Project:my-project
-✅ 4. Docker Configuration - Registry:us-central1-docker.pkg.dev
-⏳ 5. Docker Build - Image Tags:abc123, latest
+```yaml
+- uses: flazouh/discord-tracker-action@v1
+  with:
+    action: 'complete'
+    discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+    discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
 ```
 
-## 🔍 Error Handling
+### `fail` - Handle Pipeline Failure
+Marks the pipeline as failed with an error message.
 
-The tracker includes comprehensive error handling:
+**Required inputs:** `step_name`, `error_message`
 
-- **Missing Environment Variables**: Clear error messages
-- **Discord API Errors**: Proper handling of rate limits, permissions, etc.
-- **Network Issues**: Timeout handling and retry logic
-- **Invalid Input**: Validation of all parameters
-- **File System Errors**: Graceful handling of storage issues
-
-### Common Error Codes
-
-- `401`: Unauthorized - Check bot token
-- `403`: Forbidden - Check bot permissions
-- `404`: Message not found - Message may have been deleted
-- `429`: Rate limited - Automatic retry after specified time
-
-## 🏗️ Architecture
-
-### Core Components
-
-1. **CLI Interface** (`main.rs`): Command-line argument parsing
-2. **Discord API Client** (`discord_api.rs`): Discord API interaction
-3. **Data Models** (`models.rs`): Discord API data structures
-4. **Error Handling** (`error.rs`): Custom error types
-5. **Storage** (`storage.rs`): Message ID persistence
-
-### Key Features
-
-- **Async/Await**: Full async support for non-blocking operations
-- **HTTP Client**: Uses `reqwest` with rustls for secure connections
-- **JSON Handling**: Efficient JSON serialization/deserialization
-- **Logging**: Structured logging with `tracing`
-- **Error Propagation**: Proper error handling with `thiserror`
-
-## 🧪 Testing
-
-```bash
-# Run tests
-cargo test
-
-# Run tests with output
-cargo test -- --nocapture
-
-# Run specific test
-cargo test test_name
+```yaml
+- uses: flazouh/discord-tracker-action@v1
+  with:
+    action: 'fail'
+    step_name: 'Build'
+    error_message: 'Build failed due to compilation errors'
+    discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+    discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
 ```
 
-## 📈 Performance
+## Action Outputs
 
-### Benchmarks
+| Output | Description |
+|--------|-------------|
+| `error` | The description of any error that occurred |
+| `success` | Whether the action completed successfully (`true`/`false`) |
 
-- **Startup Time**: ~5ms (vs ~100ms for Node.js)
-- **HTTP Request**: ~50ms (vs ~150ms for Node.js)
-- **Memory Usage**: ~2MB (vs ~50MB for Node.js)
-- **Binary Size**: ~3MB (vs ~200MB for Node.js + dependencies)
+## Advanced Usage
 
-### Optimization Features
+### Conditional Updates
+Use the action conditionally based on job status:
 
-- **Release Build**: Optimized with LTO and codegen-units=1
-- **Stripped Binary**: Removes debug symbols for smaller size
-- **Panic Abort**: Aborts on panic for smaller binary
-- **Rustls**: Modern TLS implementation for better performance
+```yaml
+- name: Update Step Status
+  uses: flazouh/discord-tracker-action@v1
+  if: always()  # Always run, even on failure
+  with:
+    action: 'step'
+    step_number: '1'
+    total_steps: '3'
+    step_name: 'Build'
+    status: ${{ job.status == 'success' && 'success' || 'failed' }}
+    discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+    discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+```
 
-## 🔒 Security
+### Rich Additional Information
+Pass structured data as JSON for rich Discord embeds:
 
-- **No Runtime Dependencies**: Reduces attack surface
-- **Memory Safety**: Compile-time guarantees prevent buffer overflows
-- **Secure HTTP**: Uses rustls instead of OpenSSL
-- **Input Validation**: All inputs are validated before use
-- **Error Sanitization**: Errors don't leak sensitive information
+```yaml
+- uses: flazouh/discord-tracker-action@v1
+  with:
+    action: 'step'
+    step_number: '2'
+    total_steps: '4'
+    step_name: 'Tests'
+    status: 'success'
+    additional_info: '{"coverage":"92%","tests":"156 passed, 0 failed","duration":"2m 30s","artifacts":"test-results.xml"}'
+    discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+    discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+```
 
-## 🤝 Contributing
+### Multi-Environment Deployments
+Track deployments across different environments:
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+```yaml
+- name: Deploy to Staging
+  run: echo "Deploying to staging..."
+  
+- name: Update Staging Deploy
+  uses: flazouh/discord-tracker-action@v1
+  with:
+    action: 'step'
+    step_number: '3'
+    total_steps: '4'
+    step_name: 'Deploy to Staging'
+    status: 'success'
+    additional_info: '{"environment":"staging","url":"https://staging.example.com","version":"1.2.3"}'
+    discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+    discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
 
-## 📄 License
+- name: Deploy to Production
+  run: echo "Deploying to production..."
+  
+- name: Update Production Deploy
+  uses: flazouh/discord-tracker-action@v1
+  with:
+    action: 'step'
+    step_number: '4'
+    total_steps: '4'
+    step_name: 'Deploy to Production'
+    status: 'success'
+    additional_info: '{"environment":"production","url":"https://app.example.com","version":"1.2.3"}'
+    discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+    discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+```
+
+## Discord Bot Setup
+
+### Required Permissions
+Your Discord bot needs the following permissions:
+- Send Messages
+- Embed Links
+- Use External Emojis
+- Read Message History
+
+### Bot Token Security
+- Never commit your bot token to version control
+- Use GitHub Secrets to store sensitive information
+- Rotate your bot token regularly
+- Use the minimum required permissions
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Action fails with "Missing required parameters"**
+   - Ensure all required inputs are provided for the specific action type
+   - Check that input names match exactly (case-sensitive)
+
+2. **Discord messages not appearing**
+   - Verify the bot token is correct
+   - Ensure the bot has permissions in the target channel
+   - Check that the channel ID is correct
+
+3. **Action fails with "Invalid action"**
+   - Use one of the supported action types: `init`, `step`, `complete`, `fail`
+   - Check for typos in the action name
+
+### Debug Mode
+Enable debug logging by setting the `ACTIONS_STEP_DEBUG` secret to `true` in your repository.
+
+## Development
+
+### Local Development Setup
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/flazouh/discord-tracker.git
+   cd discord-tracker
+   ```
+
+2. Run the development setup script:
+   ```bash
+   ./scripts/dev-setup.sh
+   ```
+
+3. Test the action locally:
+   ```bash
+   docker run --rm -e GITHUB_OUTPUT=/tmp/output discord-tracker-action:local init 123 'Test PR' username owner/repo main 1 1 'Test' success '{}' 'error' YOUR_BOT_TOKEN YOUR_CHANNEL_ID
+   ```
+
+### Project Structure
+
+```
+discord-tracker/
+├── action.yml                 # GitHub Action definition
+├── Dockerfile                 # Docker container configuration
+├── Cargo.toml                 # Rust dependencies and metadata
+├── src/                       # Rust source code
+│   ├── main.rs               # GitHub Action entry point
+│   ├── lib.rs                # Library exports
+│   ├── discord_api.rs        # Discord API client
+│   ├── pipeline_tracker.rs   # Pipeline tracking logic
+│   ├── message_builder.rs    # Discord embed builder
+│   ├── models.rs             # Data structures
+│   ├── error.rs              # Error handling
+│   ├── storage.rs            # Message storage
+│   └── validation.rs         # Input validation
+├── .github/workflows/        # GitHub workflows
+│   ├── docker-publish.yml    # Build and publish Docker image
+│   ├── integration_tests.yml # Test the action
+│   └── example.yml           # Example usage
+└── scripts/                  # Development scripts
+    └── dev-setup.sh          # Local development setup
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
-If you encounter any issues or have questions:
+If you encounter any issues or have questions, please:
+1. Check the [troubleshooting section](#troubleshooting)
+2. Search existing [issues](https://github.com/flazouh/discord-tracker-action/issues)
+3. Create a new issue with detailed information about your problem
 
-1. Check the [Issues](https://github.com/fluentai/discord-tracker/issues) page
-2. Create a new issue with detailed information
-3. Include your platform, version, and error messages 
+## Changelog
+
+### v1.0.0
+- Initial release
+- Support for pipeline initialization, step updates, completion, and failure handling
+- Rich Discord embeds with progress tracking
+- Comprehensive error handling and logging 

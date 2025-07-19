@@ -1,16 +1,16 @@
 [package]
-name = "discord-tracker"
-version = "0.2.2"
+name = "discord-tracker-action"
+version = "1.0.0"
 edition = "2021"
 authors = ["FluentAI Team"]
-description = "Production Discord pipeline tracker for CI/CD workflows"
+description = "GitHub Action for tracking CI/CD pipeline progress in Discord"
 license = "MIT"
-repository = "https://github.com/flazouh/discord-tracker"
-keywords = ["discord", "ci", "cd", "pipeline", "tracker"]
+repository = "https://github.com/flazouh/discord-tracker-action"
+keywords = ["discord", "github-action", "ci", "cd", "pipeline", "tracker"]
 categories = ["command-line-utilities", "web-programming"]
 
 [[bin]]
-name = "discord-tracker"
+name = "discord-tracker-action"
 path = "src/main.rs"
 
 [dependencies]
@@ -21,9 +21,6 @@ tokio = { version = "1.0", features = ["full"] }
 # JSON handling
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-
-# CLI argument parsing
-clap = { version = "4.0", features = ["derive"] }
 
 # Error handling
 anyhow = "1.0"

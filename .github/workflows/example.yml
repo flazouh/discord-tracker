@@ -1,0 +1,217 @@
+name: Example CI/CD Pipeline with Discord Tracking
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      # Initialize Discord tracking
+      - name: Initialize Discord Tracker
+        uses: ./
+        with:
+          action: 'init'
+          pr_number: ${{ github.event.number }}
+          pr_title: ${{ github.event.pull_request.title }}
+          author: ${{ github.event.pull_request.user.login }}
+          repository: ${{ github.repository }}
+          branch: ${{ github.head_ref }}
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm ci
+        continue-on-error: true
+
+      - name: Update Dependencies Step
+        uses: ./
+        if: always()
+        with:
+          action: 'step'
+          step_number: '1'
+          total_steps: '5'
+          step_name: 'Install Dependencies'
+          status: ${{ job.status == 'success' && 'success' || 'failed' }}
+          additional_info: '{"package_manager":"npm","lockfile":"package-lock.json"}'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Lint code
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Update Lint Step
+        uses: ./
+        if: always()
+        with:
+          action: 'step'
+          step_number: '2'
+          total_steps: '5'
+          step_name: 'Code Linting'
+          status: ${{ job.status == 'success' && 'success' || 'failed' }}
+          additional_info: '{"linter":"eslint","config":".eslintrc.js"}'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Run tests
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+
+      - name: Update Test Step
+        uses: ./
+        if: always()
+        with:
+          action: 'step'
+          step_number: '3'
+          total_steps: '5'
+          step_name: 'Unit Tests'
+          status: ${{ job.status == 'success' && 'success' || 'failed' }}
+          additional_info: '{"test_runner":"jest","coverage":"85%"}'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Build application
+      - name: Build application
+        run: npm run build
+        continue-on-error: true
+
+      - name: Update Build Step
+        uses: ./
+        if: always()
+        with:
+          action: 'step'
+          step_number: '4'
+          total_steps: '5'
+          step_name: 'Build Application'
+          status: ${{ job.status == 'success' && 'success' || 'failed' }}
+          additional_info: '{"build_tool":"webpack","output":"dist/"}'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Security scan
+      - name: Run security scan
+        run: npm audit
+        continue-on-error: true
+
+      - name: Update Security Step
+        uses: ./
+        if: always()
+        with:
+          action: 'step'
+          step_number: '5'
+          total_steps: '5'
+          step_name: 'Security Scan'
+          status: ${{ job.status == 'success' && 'success' || 'failed' }}
+          additional_info: '{"scanner":"npm audit","vulnerabilities":"0"}'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Complete pipeline
+      - name: Complete Pipeline
+        uses: ./
+        if: success()
+        with:
+          action: 'complete'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Handle failure
+      - name: Handle Pipeline Failure
+        uses: ./
+        if: failure()
+        with:
+          action: 'fail'
+          step_name: 'CI/CD Pipeline'
+          error_message: 'Pipeline failed during execution. Check the logs for details.'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      # Initialize deployment tracking
+      - name: Initialize Deployment Tracker
+        uses: ./
+        with:
+          action: 'init'
+          pr_number: ${{ github.event.number }}
+          pr_title: ${{ github.event.pull_request.title }}
+          author: ${{ github.event.pull_request.user.login }}
+          repository: ${{ github.repository }}
+          branch: ${{ github.head_ref }}
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Deploy to staging
+      - name: Deploy to staging
+        run: echo "Deploying to staging environment..."
+        continue-on-error: true
+
+      - name: Update Staging Deploy
+        uses: ./
+        if: always()
+        with:
+          action: 'step'
+          step_number: '1'
+          total_steps: '2'
+          step_name: 'Deploy to Staging'
+          status: ${{ job.status == 'success' && 'success' || 'failed' }}
+          additional_info: '{"environment":"staging","url":"https://staging.example.com","version":"1.0.0"}'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Deploy to production
+      - name: Deploy to production
+        run: echo "Deploying to production environment..."
+        continue-on-error: true
+
+      - name: Update Production Deploy
+        uses: ./
+        if: always()
+        with:
+          action: 'step'
+          step_number: '2'
+          total_steps: '2'
+          step_name: 'Deploy to Production'
+          status: ${{ job.status == 'success' && 'success' || 'failed' }}
+          additional_info: '{"environment":"production","url":"https://app.example.com","version":"1.0.0"}'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Complete deployment
+      - name: Complete Deployment
+        uses: ./
+        if: success()
+        with:
+          action: 'complete'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }}
+
+      # Handle deployment failure
+      - name: Handle Deployment Failure
+        uses: ./
+        if: failure()
+        with:
+          action: 'fail'
+          step_name: 'Deployment'
+          error_message: 'Deployment failed. Check the deployment logs for details.'
+          discord_bot_token: ${{ secrets.DISCORD_BOT_TOKEN }}
+          discord_channel_id: ${{ secrets.DISCORD_CHANNEL_ID }} 

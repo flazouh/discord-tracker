@@ -1,0 +1,75 @@
+name: 'Discord Pipeline Tracker'
+description: 'Track CI/CD pipeline progress in Discord with real-time updates'
+
+inputs:
+  action:
+    description: 'The action to perform (init, step, complete, fail)'
+    required: true
+  pr_number:
+    description: 'Pull request number'
+    required: false
+  pr_title:
+    description: 'Pull request title'
+    required: false
+  author:
+    description: 'PR author username'
+    required: false
+  repository:
+    description: 'Repository name (e.g., "owner/repo")'
+    required: false
+  branch:
+    description: 'Branch name'
+    required: false
+  step_number:
+    description: 'Current step number (1-based)'
+    required: false
+  total_steps:
+    description: 'Total number of steps'
+    required: false
+  step_name:
+    description: 'Name of the current step'
+    required: false
+  status:
+    description: 'Step status (success, pending, failed)'
+    required: false
+  additional_info:
+    description: 'Additional information as JSON string'
+    required: false
+  error_message:
+    description: 'Error message for failed steps'
+    required: false
+  discord_bot_token:
+    description: 'Discord bot token'
+    required: true
+  discord_channel_id:
+    description: 'Discord channel ID'
+    required: true
+
+outputs:
+  error:
+    description: 'The description of any error that occurred'
+  success:
+    description: 'Whether the action completed successfully'
+
+runs:
+  using: 'docker'
+  image: 'ghcr.io/flazouh/discord-tracker:v1'
+  args:
+    - ${{ inputs.action }}
+    - ${{ inputs.pr_number }}
+    - ${{ inputs.pr_title }}
+    - ${{ inputs.author }}
+    - ${{ inputs.repository }}
+    - ${{ inputs.branch }}
+    - ${{ inputs.step_number }}
+    - ${{ inputs.total_steps }}
+    - ${{ inputs.step_name }}
+    - ${{ inputs.status }}
+    - ${{ inputs.additional_info }}
+    - ${{ inputs.error_message }}
+    - ${{ inputs.discord_bot_token }}
+    - ${{ inputs.discord_channel_id }}
+
+branding:
+  icon: 'message-circle'
+  color: 'blue' 

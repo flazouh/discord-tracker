@@ -1,72 +1,11 @@
-use clap::{Parser, Subcommand};
+use std::env;
+use std::fs::write;
+use std::process::exit;
 use tracing::{error, info, Level};
 use tracing_subscriber::FmtSubscriber;
 
-use discord_tracker::pipeline_tracker::PipelineTracker;
-use discord_tracker::error::TrackerError;
-
-#[derive(Parser)]
-#[command(
-    name = "discord-tracker",
-    about = "Production Discord pipeline tracker for CI/CD workflows",
-    version,
-    author
-)]
-struct Cli {
-    #[command(subcommand)]
-    command: Commands,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    /// Initialize a new pipeline tracker
-    Init {
-        /// Pull request number
-        #[arg(long)]
-        pr_number: String,
-        /// Pull request title
-        #[arg(long)]
-        pr_title: String,
-        /// PR author username
-        #[arg(long)]
-        author: String,
-        /// Repository name (e.g., "owner/repo")
-        #[arg(long)]
-        repository: String,
-        /// Branch name
-        #[arg(long)]
-        branch: String,
-    },
-    /// Update step progress
-    Step {
-        /// Current step number (1-based)
-        #[arg(long)]
-        step_number: u32,
-        /// Total number of steps
-        #[arg(long)]
-        total_steps: u32,
-        /// Name of the current step
-        #[arg(long)]
-        step_name: String,
-        /// Step status (success, pending, failed)
-        #[arg(long)]
-        status: String,
-        /// Additional information as key-value pairs
-        #[arg(long, value_delimiter = ',')]
-        additional_info: Vec<String>,
-    },
-    /// Complete the pipeline
-    Complete,
-    /// Handle pipeline failure
-    Fail {
-        /// Name of the step that failed
-        #[arg(long)]
-        step_name: String,
-        /// Error message
-        #[arg(long)]
-        error_message: String,
-    },
-}
+use discord_tracker_action::pipeline_tracker::PipelineTracker;
+use discord_tracker_action::error::TrackerError;
 
 #[tokio::main]
 async fn main() -> Result<(), TrackerError> {
@@ -78,72 +17,116 @@ async fn main() -> Result<(), TrackerError> {
         .with_thread_names(false)
         .init();
 
-    info!("Starting Discord Tracker");
+    info!("Starting Discord Tracker GitHub Action");
 
-    let cli = Cli::parse();
+    // Get GitHub output path
+    let github_output_path = env::var("GITHUB_OUTPUT")
+        .map_err(|_| TrackerError::MissingEnvironmentVariable("GITHUB_OUTPUT".to_string()))?;
 
-    // Get environment variables
-    let bot_token = std::env::var("DISCORD_BOT_TOKEN")
-        .map_err(|_| TrackerError::MissingEnvironmentVariable("DISCORD_BOT_TOKEN".to_string()))?;
-    let channel_id = std::env::var("DISCORD_CHANNEL_ID")
-        .map_err(|_| TrackerError::MissingEnvironmentVariable("DISCORD_CHANNEL_ID".to_string()))?;
-
-    // Create pipeline tracker
-    let mut tracker = PipelineTracker::new(&bot_token, &channel_id)?;
-
-    match cli.command {
-        Commands::Init {
-            pr_number,
-            pr_title,
-            author,
-            repository,
-            branch,
-        } => {
-            info!("Initializing pipeline tracker for PR #{}", pr_number);
-            tracker
-                .init_pipeline(&pr_number, &pr_title, &author, &repository, &branch)
-                .await?;
-            info!("Pipeline tracker initialized successfully");
-        }
-        Commands::Step {
-            step_number,
-            total_steps,
-            step_name,
-            status,
-            additional_info,
-        } => {
-            info!("Updating step {}: {}", step_number, step_name);
-            let additional_info_pairs: Vec<(String, String)> = additional_info
-                .chunks(2)
-                .filter_map(|chunk| {
-                    if chunk.len() == 2 {
-                        Some((chunk[0].clone(), chunk[1].clone()))
-                    } else {
-                        None
-                    }
-                })
-                .collect();
-            tracker
-                .update_step(step_number, total_steps, &step_name, &status, &additional_info_pairs)
-                .await?;
-            info!("Step updated successfully");
-        }
-        Commands::Complete => {
-            info!("Completing pipeline");
-            tracker.complete_pipeline().await?;
-            info!("Pipeline completed successfully");
-        }
-        Commands::Fail {
-            step_name,
-            error_message,
-        } => {
-            error!("Pipeline failed at step: {}", step_name);
-            tracker
-                .update_step(1, 1, &step_name, "failed", &[("error".to_string(), error_message)])
-                .await?;
-            info!("Pipeline failure recorded");
-        }
+    // Get action arguments from command line
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 14 {
+        let error_msg = "Insufficient arguments provided";
+        eprintln!("Error: {}", error_msg);
+        write(github_output_path, format!("error={}\nsuccess=false", error_msg)).unwrap();
+        exit(1);
     }
 
-    Ok(())
+    let action = &args[1];
+    let pr_number = &args[2];
+    let pr_title = &args[3];
+    let author = &args[4];
+    let repository = &args[5];
+    let branch = &args[6];
+    let step_number = &args[7];
+    let total_steps = &args[8];
+    let step_name = &args[9];
+    let status = &args[10];
+    let additional_info = &args[11];
+    let error_message = &args[12];
+    let bot_token = &args[13];
+    let channel_id = &args[14];
+
+    // Create pipeline tracker
+    let mut tracker = match PipelineTracker::new(bot_token, channel_id) {
+        Ok(tracker) => tracker,
+        Err(e) => {
+            let error_msg = format!("Failed to create pipeline tracker: {}", e);
+            eprintln!("Error: {}", error_msg);
+            write(github_output_path, format!("error={}\nsuccess=false", error_msg)).unwrap();
+            exit(1);
+        }
+    };
+
+    // Execute the requested action
+    let result = match action.as_str() {
+        "init" => {
+            if pr_number.is_empty() || pr_title.is_empty() || author.is_empty() || repository.is_empty() || branch.is_empty() {
+                let error_msg = "Missing required parameters for init action";
+                eprintln!("Error: {}", error_msg);
+                write(github_output_path, format!("error={}\nsuccess=false", error_msg)).unwrap();
+                exit(1);
+            }
+            info!("Initializing pipeline tracker for PR #{}", pr_number);
+            tracker.init_pipeline(pr_number, pr_title, author, repository, branch).await
+        }
+        "step" => {
+            if step_number.is_empty() || total_steps.is_empty() || step_name.is_empty() || status.is_empty() {
+                let error_msg = "Missing required parameters for step action";
+                eprintln!("Error: {}", error_msg);
+                write(github_output_path, format!("error={}\nsuccess=false", error_msg)).unwrap();
+                exit(1);
+            }
+            let step_num = step_number.parse::<u32>().unwrap_or(1);
+            let total = total_steps.parse::<u32>().unwrap_or(1);
+            
+            let additional_info_pairs: Vec<(String, String)> = if !additional_info.is_empty() {
+                match serde_json::from_str::<serde_json::Map<String, serde_json::Value>>(additional_info) {
+                    Ok(map) => map.into_iter()
+                        .map(|(k, v)| (k, v.to_string()))
+                        .collect(),
+                    Err(_) => vec![]
+                }
+            } else {
+                vec![]
+            };
+            
+            info!("Updating step {}: {}", step_num, step_name);
+            tracker.update_step(step_num, total, step_name, status, &additional_info_pairs).await
+        }
+        "complete" => {
+            info!("Completing pipeline");
+            tracker.complete_pipeline().await
+        }
+        "fail" => {
+            if step_name.is_empty() || error_message.is_empty() {
+                let error_msg = "Missing required parameters for fail action";
+                eprintln!("Error: {}", error_msg);
+                write(github_output_path, format!("error={}\nsuccess=false", error_msg)).unwrap();
+                exit(1);
+            }
+            error!("Pipeline failed at step: {}", step_name);
+            tracker.update_step(1, 1, step_name, "failed", &[("error".to_string(), error_message.to_string())]).await
+        }
+        _ => {
+            let error_msg = format!("Invalid action: {}", action);
+            eprintln!("Error: {}", error_msg);
+            write(github_output_path, format!("error={}\nsuccess=false", error_msg)).unwrap();
+            exit(1);
+        }
+    };
+
+    match result {
+        Ok(_) => {
+            info!("Action completed successfully");
+            write(github_output_path, "success=true").unwrap();
+            Ok(())
+        }
+        Err(e) => {
+            let error_msg = format!("Action failed: {}", e);
+            eprintln!("Error: {}", error_msg);
+            write(github_output_path, format!("error={}\nsuccess=false", error_msg)).unwrap();
+            exit(1);
+        }
+    }
 } 

@@ -53,7 +53,7 @@ outputs:
 
 runs:
   using: 'docker'
-  image: 'ghcr.io/flazouh/discord-tracker:v1'
+  image: 'Dockerfile'
   args:
     - ${{ inputs.action }}
     - ${{ inputs.pr_number }}

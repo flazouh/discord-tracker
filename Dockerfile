@@ -1,4 +1,4 @@
-FROM rust:1.76 AS build
+FROM rust:1.77 AS build
 
 # create a new empty shell project
 RUN USER=root cargo new --bin discord-tracker-action
@@ -26,4 +26,4 @@ FROM gcr.io/distroless/cc AS runtime
 COPY --from=build /discord-tracker-action/target/release/discord-tracker-action .
 
 # set the startup command to run your binary
-ENTRYPOINT ["/discord-tracker-action"] 
+ENTRYPOINT ["./discord-tracker-action"] 

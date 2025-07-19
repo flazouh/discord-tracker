@@ -347,6 +347,36 @@ Enable debug logging by setting the `ACTIONS_STEP_DEBUG` secret to `true` in you
    docker run --rm -e GITHUB_OUTPUT=/tmp/output discord-tracker-action:local init 123 'Test PR' username owner/repo main 1 1 'Test' success '{}' 'error' YOUR_BOT_TOKEN YOUR_CHANNEL_ID
    ```
 
+### Testing Before Release
+
+Before pushing changes or creating a release, you can test the Docker image locally:
+
+#### Quick Test (Recommended for development)
+```bash
+./scripts/quick-test.sh
+```
+
+#### Comprehensive Test (Recommended before release)
+```bash
+./scripts/test-docker.sh
+```
+
+#### Manual Testing with Real Credentials
+```bash
+# Build the image
+docker build -t discord-tracker-action:test .
+
+# Test with your Discord bot token and channel ID
+docker run --rm \
+  -e GITHUB_OUTPUT=/tmp/output \
+  -v /tmp/output:/tmp/output \
+  discord-tracker-action:test \
+  init "123" "Test PR" "username" "owner/repo" "main" "1" "1" "Test" "success" "{}" "" "YOUR_BOT_TOKEN" "YOUR_CHANNEL_ID"
+```
+
+#### Automated Testing
+The repository includes GitHub Actions workflows that automatically test the Docker image on every pull request and push to main.
+
 ### Automated Version Management
 
 The repository uses a fully automated GitHub Actions workflow for version management:

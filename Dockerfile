@@ -23,8 +23,13 @@ RUN cargo build --release
 RUN ls -la target/release/
 RUN test -f target/release/discord-tracker-action
 
-# our final base
-FROM gcr.io/distroless/cc AS runtime
+# our final base - use debian-slim instead of distroless for better compatibility
+FROM debian:bookworm-slim AS runtime
+
+# Install necessary runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # copy the build artifact from the build stage
 COPY --from=build /discord-tracker-action/target/release/discord-tracker-action .

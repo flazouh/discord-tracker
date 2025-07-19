@@ -19,6 +19,10 @@ COPY ./src ./src
 RUN rm ./target/release/deps/discord_tracker*
 RUN cargo build --release
 
+# verify the binary exists
+RUN ls -la target/release/
+RUN test -f target/release/discord-tracker-action
+
 # our final base
 FROM gcr.io/distroless/cc AS runtime
 

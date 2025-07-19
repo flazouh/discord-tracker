@@ -432,4 +432,4 @@ If you encounter any issues or have questions, please:
 ### v1.0.0
 - Initial release
 - Support for pipeline initialization, step updates, completion, and failure handling
-- Rich Discord embeds with progress tracking 
+- Rich Discord embeds with progress tracking # Updated README with latest fixes

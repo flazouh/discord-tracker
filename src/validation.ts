@@ -60,7 +60,7 @@ export function validatePrNumber(prNumber: string): void {
 	}
 
 	const num = parseInt(prNumber, 10);
-	if (isNaN(num) || num <= 0) {
+	if (Number.isNaN(num) || num <= 0) {
 		throw new TrackerError("Invalid pull request number", "INVALID_PR_NUMBER");
 	}
 }
@@ -154,7 +154,7 @@ export function validateAdditionalInfo(
 			return Object.entries(parsed).map(([key, value]) => [key, String(value)]);
 		}
 		return [];
-	} catch (error) {
+	} catch (_error) {
 		// Return empty array for invalid JSON instead of throwing
 		return [];
 	}

@@ -10,5 +10,8 @@ export declare class TrackerError extends Error {
     static jsonError(error: Error): TrackerError;
     static invalidBotToken(): TrackerError;
     static invalidChannelId(): TrackerError;
+    static stateLoadError(error: Error): TrackerError;
+    static stateSaveError(error: Error): TrackerError;
+    static discordUnavailable(operation: string): TrackerError;
 }
 //# sourceMappingURL=error.d.ts.map

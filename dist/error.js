@@ -37,5 +37,14 @@ export class TrackerError extends Error {
     static invalidChannelId() {
         return new TrackerError('Channel ID is invalid', 'INVALID_CHANNEL_ID');
     }
+    static stateLoadError(error) {
+        return new TrackerError(`Failed to load pipeline state: ${error.message}`, 'STATE_LOAD_ERROR');
+    }
+    static stateSaveError(error) {
+        return new TrackerError(`Failed to save pipeline state: ${error.message}`, 'STATE_SAVE_ERROR');
+    }
+    static discordUnavailable(operation) {
+        return new TrackerError(`Discord API is unavailable for ${operation}. Pipeline will continue with local state only.`, 'DISCORD_UNAVAILABLE');
+    }
 }
 //# sourceMappingURL=error.js.map

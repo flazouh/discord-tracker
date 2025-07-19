@@ -190,7 +190,7 @@ var require_file_command = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.prepareKeyValueMessage = exports2.issueFileCommand = void 0;
-    var crypto2 = __importStar(require("crypto"));
+    var crypto3 = __importStar(require("crypto"));
     var fs2 = __importStar(require("fs"));
     var os = __importStar(require("os"));
     var utils_1 = require_utils();
@@ -208,7 +208,7 @@ var require_file_command = __commonJS({
     }
     exports2.issueFileCommand = issueFileCommand;
     function prepareKeyValueMessage(key, value) {
-      const delimiter = `ghadelimiter_${crypto2.randomUUID()}`;
+      const delimiter = `ghadelimiter_${crypto3.randomUUID()}`;
       const convertedValue = (0, utils_1.toCommandValue)(value);
       if (key.includes(delimiter)) {
         throw new Error(`Unexpected input: name should not contain the delimiter "${delimiter}"`);
@@ -3644,11 +3644,11 @@ var require_util2 = __commonJS({
     var assert = require("assert");
     var { isUint8Array } = require("util/types");
     var supportedHashes = [];
-    var crypto2;
+    var crypto3;
     try {
-      crypto2 = require("crypto");
+      crypto3 = require("crypto");
       const possibleRelevantHashes = ["sha256", "sha384", "sha512"];
-      supportedHashes = crypto2.getHashes().filter((hash) => possibleRelevantHashes.includes(hash));
+      supportedHashes = crypto3.getHashes().filter((hash) => possibleRelevantHashes.includes(hash));
     } catch {
     }
     function responseURL(response) {
@@ -3914,7 +3914,7 @@ var require_util2 = __commonJS({
       }
     }
     function bytesMatch(bytes, metadataList) {
-      if (crypto2 === void 0) {
+      if (crypto3 === void 0) {
         return true;
       }
       const parsedMetadata = parseMetadata(metadataList);
@@ -3929,7 +3929,7 @@ var require_util2 = __commonJS({
       for (const item of metadata) {
         const algorithm = item.algo;
         const expectedValue = item.hash;
-        let actualValue = crypto2.createHash(algorithm).update(bytes).digest("base64");
+        let actualValue = crypto3.createHash(algorithm).update(bytes).digest("base64");
         if (actualValue[actualValue.length - 1] === "=") {
           if (actualValue[actualValue.length - 2] === "=") {
             actualValue = actualValue.slice(0, -2);
@@ -5279,8 +5279,8 @@ var require_body = __commonJS({
     var { parseMIMEType, serializeAMimeType } = require_dataURL();
     var random;
     try {
-      const crypto2 = require("node:crypto");
-      random = (max) => crypto2.randomInt(0, max);
+      const crypto3 = require("node:crypto");
+      random = (max) => crypto3.randomInt(0, max);
     } catch {
       random = (max) => Math.floor(Math.random(max));
     }
@@ -16351,9 +16351,9 @@ var require_connection = __commonJS({
     channels.open = diagnosticsChannel.channel("undici:websocket:open");
     channels.close = diagnosticsChannel.channel("undici:websocket:close");
     channels.socketError = diagnosticsChannel.channel("undici:websocket:socket_error");
-    var crypto2;
+    var crypto3;
     try {
-      crypto2 = require("crypto");
+      crypto3 = require("crypto");
     } catch {
     }
     function establishWebSocketConnection(url2, protocols, ws, onEstablish, options) {
@@ -16372,7 +16372,7 @@ var require_connection = __commonJS({
         const headersList = new Headers(options.headers)[kHeadersList];
         request.headersList = headersList;
       }
-      const keyValue = crypto2.randomBytes(16).toString("base64");
+      const keyValue = crypto3.randomBytes(16).toString("base64");
       request.headersList.append("sec-websocket-key", keyValue);
       request.headersList.append("sec-websocket-version", "13");
       for (const protocol of protocols) {
@@ -16401,7 +16401,7 @@ var require_connection = __commonJS({
             return;
           }
           const secWSAccept = response.headersList.get("Sec-WebSocket-Accept");
-          const digest = crypto2.createHash("sha1").update(keyValue + uid).digest("base64");
+          const digest = crypto3.createHash("sha1").update(keyValue + uid).digest("base64");
           if (secWSAccept !== digest) {
             failWebsocketConnection(ws, "Incorrect hash received in Sec-WebSocket-Accept header.");
             return;
@@ -16481,9 +16481,9 @@ var require_frame = __commonJS({
   "node_modules/undici/lib/websocket/frame.js"(exports2, module2) {
     "use strict";
     var { maxUnsigned16Bit } = require_constants5();
-    var crypto2;
+    var crypto3;
     try {
-      crypto2 = require("crypto");
+      crypto3 = require("crypto");
     } catch {
     }
     var WebsocketFrameSend = class {
@@ -16492,7 +16492,7 @@ var require_frame = __commonJS({
        */
       constructor(data) {
         this.frameData = data;
-        this.maskKey = crypto2.randomBytes(4);
+        this.maskKey = crypto3.randomBytes(4);
       }
       createFrame(opcode) {
         const bodyLength = this.frameData?.byteLength ?? 0;
@@ -18174,7 +18174,7 @@ var require_summary = __commonJS({
     exports2.summary = exports2.markdownSummary = exports2.SUMMARY_DOCS_URL = exports2.SUMMARY_ENV_VAR = void 0;
     var os_1 = require("os");
     var fs_1 = require("fs");
-    var { access, appendFile, writeFile: writeFile2 } = fs_1.promises;
+    var { access: access2, appendFile, writeFile: writeFile2 } = fs_1.promises;
     exports2.SUMMARY_ENV_VAR = "GITHUB_STEP_SUMMARY";
     exports2.SUMMARY_DOCS_URL = "https://docs.github.com/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary";
     var Summary = class {
@@ -18197,7 +18197,7 @@ var require_summary = __commonJS({
             throw new Error(`Unable to find environment variable for $${exports2.SUMMARY_ENV_VAR}. Check if your runtime environment supports job summaries.`);
           }
           try {
-            yield access(pathFromEnv, fs_1.constants.R_OK | fs_1.constants.W_OK);
+            yield access2(pathFromEnv, fs_1.constants.R_OK | fs_1.constants.W_OK);
           } catch (_a) {
             throw new Error(`Unable to access summary file: '${pathFromEnv}'. Check if the file has correct read/write permissions.`);
           }
@@ -18751,7 +18751,7 @@ var require_io = __commonJS({
           if (path2.relative(source, newDest) === "") {
             throw new Error(`'${newDest}' and '${source}' are the same file`);
           }
-          yield copyFile(source, newDest, force);
+          yield copyFile2(source, newDest, force);
         }
       });
     }
@@ -18890,13 +18890,13 @@ var require_io = __commonJS({
           if (srcFileStat.isDirectory()) {
             yield cpDirRecursive(srcFile, destFile, currentDepth, force);
           } else {
-            yield copyFile(srcFile, destFile, force);
+            yield copyFile2(srcFile, destFile, force);
           }
         }
         yield ioUtil.chmod(destDir, (yield ioUtil.stat(sourceDir)).mode);
       });
     }
-    function copyFile(srcFile, destFile, force) {
+    function copyFile2(srcFile, destFile, force) {
       return __awaiter(this, void 0, void 0, function* () {
         if ((yield ioUtil.lstat(srcFile)).isSymbolicLink()) {
           try {
@@ -29842,7 +29842,7 @@ var require_form_data = __commonJS({
     var parseUrl = require("url").parse;
     var fs2 = require("fs");
     var Stream = require("stream").Stream;
-    var crypto2 = require("crypto");
+    var crypto3 = require("crypto");
     var mime = require_mime_types();
     var asynckit = require_asynckit();
     var setToStringTag = require_es_set_tostringtag();
@@ -30048,7 +30048,7 @@ var require_form_data = __commonJS({
       return Buffer.concat([dataBuffer, Buffer.from(this._lastBoundary())]);
     };
     FormData3.prototype._generateBoundary = function() {
-      this._boundary = "--------------------------" + crypto2.randomBytes(12).toString("hex");
+      this._boundary = "--------------------------" + crypto3.randomBytes(12).toString("hex");
     };
     FormData3.prototype.getLengthSync = function() {
       var knownLength = this._overheadLength + this._valueLength;
@@ -34867,6 +34867,15 @@ var TrackerError = class _TrackerError extends Error {
   static invalidChannelId() {
     return new _TrackerError("Channel ID is invalid", "INVALID_CHANNEL_ID");
   }
+  static stateLoadError(error2) {
+    return new _TrackerError(`Failed to load pipeline state: ${error2.message}`, "STATE_LOAD_ERROR");
+  }
+  static stateSaveError(error2) {
+    return new _TrackerError(`Failed to save pipeline state: ${error2.message}`, "STATE_SAVE_ERROR");
+  }
+  static discordUnavailable(operation) {
+    return new _TrackerError(`Discord API is unavailable for ${operation}. Pipeline will continue with local state only.`, "DISCORD_UNAVAILABLE");
+  }
 };
 
 // dist/validation.js
@@ -34888,15 +34897,24 @@ function validateChannelId(channelId) {
 }
 
 // dist/discordApi.js
+var DEFAULT_RETRY_CONFIG = {
+  maxRetries: 3,
+  baseDelay: 1e3,
+  // 1 second
+  maxDelay: 3e4
+  // 30 seconds
+};
 var DiscordApi = class {
   client;
   botToken;
   channelId;
-  constructor(botToken, channelId) {
+  retryConfig;
+  constructor(botToken, channelId, retryConfig = {}) {
     validateBotToken(botToken);
     validateChannelId(channelId);
     this.botToken = botToken;
     this.channelId = channelId;
+    this.retryConfig = { ...DEFAULT_RETRY_CONFIG, ...retryConfig };
     this.client = axios_default.create({
       baseURL: "https://discord.com/api/v10",
       timeout: 3e4,
@@ -34907,50 +34925,135 @@ var DiscordApi = class {
       }
     });
   }
-  /// Sends a message to Discord
-  async sendMessage(message) {
-    try {
-      const response = await this.client.post(`/channels/${this.channelId}/messages`, message);
-      return response.data.id;
-    } catch (error2) {
-      if (error2.response) {
-        const errorResponse = error2.response.data;
-        throw TrackerError.discordApiError(errorResponse.message || "Unknown error", error2.response.status);
-      } else if (error2.request) {
-        throw TrackerError.discordApiError("No response received");
-      } else {
-        throw TrackerError.discordApiError(`Request setup failed: ${error2.message}`);
+  /// Determines if an error is retryable
+  isRetryableError(error2) {
+    if (!error2.response) {
+      return true;
+    }
+    const status = error2.response.status;
+    if (status === 429) {
+      return true;
+    }
+    if (status >= 500) {
+      return true;
+    }
+    return false;
+  }
+  /// Calculates delay for exponential backoff
+  calculateDelay(attempt, retryAfter) {
+    if (retryAfter) {
+      return Math.min(retryAfter * 1e3, this.retryConfig.maxDelay);
+    }
+    const exponentialDelay = this.retryConfig.baseDelay * 2 ** attempt;
+    const jitter = Math.random() * 0.1 * exponentialDelay;
+    const totalDelay = exponentialDelay + jitter;
+    return Math.min(totalDelay, this.retryConfig.maxDelay);
+  }
+  /// Sleeps for the specified number of milliseconds
+  async sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+  /// Executes a function with retry logic
+  async executeWithRetry(operation, operationName) {
+    let lastError = null;
+    for (let attempt = 0; attempt <= this.retryConfig.maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error2) {
+        lastError = error2;
+        if (attempt === this.retryConfig.maxRetries || !this.isRetryableError(lastError)) {
+          break;
+        }
+        const retryAfter = lastError.response?.data?.retry_after;
+        const delay = this.calculateDelay(attempt, retryAfter);
+        console.warn(`Discord API ${operationName} failed (attempt ${attempt + 1}/${this.retryConfig.maxRetries + 1}), retrying in ${delay}ms. Error: ${lastError.message}` + (lastError.response?.status ? ` (HTTP ${lastError.response.status})` : ""));
+        await this.sleep(delay);
       }
     }
+    if (!lastError) {
+      throw TrackerError.discordApiError("Unknown error occurred during Discord API operation");
+    }
+    if (lastError.response) {
+      const errorResponse = lastError.response.data;
+      const status = lastError.response.status;
+      let actionableMessage = `Discord API ${operationName} failed after ${this.retryConfig.maxRetries + 1} attempts. `;
+      switch (status) {
+        case 401:
+          actionableMessage += "Authentication failed. Please verify your bot token is correct and has not expired.";
+          break;
+        case 403:
+          actionableMessage += "Permission denied. Please ensure the bot has permission to send/edit messages in the target channel.";
+          break;
+        case 404:
+          actionableMessage += "Channel or message not found. Please verify the channel ID is correct and the bot has access to it.";
+          break;
+        case 429:
+          actionableMessage += "Rate limit exceeded. The bot is being rate limited by Discord. Consider reducing message frequency.";
+          break;
+        case 500:
+        case 502:
+        case 503:
+        case 504:
+          actionableMessage += "Discord server error. This is a temporary issue with Discord's servers. The operation will be retried automatically.";
+          break;
+        default:
+          actionableMessage += `HTTP ${status}: ${errorResponse.message || "Unknown error"}`;
+      }
+      throw TrackerError.discordApiError(actionableMessage, status);
+    } else if (lastError.request) {
+      throw TrackerError.discordApiError(`Discord API ${operationName} failed: No response received after ${this.retryConfig.maxRetries + 1} attempts. This may indicate network connectivity issues or Discord API unavailability. Please check your internet connection and Discord API status.`);
+    } else {
+      throw TrackerError.discordApiError(`Discord API ${operationName} failed: Request setup error - ${lastError.message}. This may indicate a configuration issue with the bot token or channel ID.`);
+    }
+  }
+  /// Sends a message to Discord
+  async sendMessage(message) {
+    return this.executeWithRetry(async () => {
+      const response = await this.client.post(`/channels/${this.channelId}/messages`, message);
+      return response.data.id;
+    }, "sendMessage");
   }
   /// Updates an existing message
   async updateMessage(messageId, message) {
-    try {
+    return this.executeWithRetry(async () => {
       await this.client.patch(`/channels/${this.channelId}/messages/${messageId}`, message);
-    } catch (error2) {
-      if (error2.response) {
-        const errorResponse = error2.response.data;
-        throw TrackerError.discordApiError(errorResponse.message || "Unknown error", error2.response.status);
-      } else if (error2.request) {
-        throw TrackerError.discordApiError("No response received");
-      } else {
-        throw TrackerError.discordApiError(`Request setup failed: ${error2.message}`);
-      }
-    }
+    }, "updateMessage");
   }
   /// Deletes a message
   async deleteMessage(messageId) {
-    try {
+    return this.executeWithRetry(async () => {
       await this.client.delete(`/channels/${this.channelId}/messages/${messageId}`);
+    }, "deleteMessage");
+  }
+  /// Checks if Discord API is available by attempting to get channel info
+  async checkApiHealth() {
+    try {
+      await this.client.get(`/channels/${this.channelId}`);
+      return { available: true };
     } catch (error2) {
-      if (error2.response) {
-        const errorResponse = error2.response.data;
-        throw TrackerError.discordApiError(errorResponse.message || "Unknown error", error2.response.status);
-      } else if (error2.request) {
-        throw TrackerError.discordApiError("No response received");
+      const axiosError = error2;
+      let errorMessage = "Unknown error";
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 401:
+            errorMessage = "Invalid bot token";
+            break;
+          case 403:
+            errorMessage = "Bot lacks permission to access channel";
+            break;
+          case 404:
+            errorMessage = "Channel not found or bot not in server";
+            break;
+          default:
+            errorMessage = `HTTP ${status}: ${axiosError.message}`;
+        }
+      } else if (axiosError.request) {
+        errorMessage = "Network connectivity issue - cannot reach Discord API";
       } else {
-        throw TrackerError.discordApiError(`Request setup failed: ${error2.message}`);
+        errorMessage = `Request setup error: ${axiosError.message}`;
       }
+      return { available: false, error: errorMessage };
     }
   }
 };
@@ -35226,6 +35329,42 @@ var InMemoryStorage = class {
   async loadPipelineState() {
     return this.state;
   }
+  validateState(state) {
+    return this.isValidState(state);
+  }
+  isValidState(state) {
+    if (!state || typeof state !== "object")
+      return false;
+    if (typeof state.messageId !== "string")
+      return false;
+    if (typeof state.prNumber !== "number" || state.prNumber < 0)
+      return false;
+    if (typeof state.prTitle !== "string" || state.prTitle.trim() === "")
+      return false;
+    if (typeof state.author !== "string" || state.author.trim() === "")
+      return false;
+    if (typeof state.repository !== "string" || state.repository.trim() === "")
+      return false;
+    if (typeof state.branch !== "string" || state.branch.trim() === "")
+      return false;
+    if (!Array.isArray(state.steps))
+      return false;
+    if (!(state.pipelineStartedAt instanceof Date) && typeof state.pipelineStartedAt !== "string")
+      return false;
+    for (const step of state.steps) {
+      if (!step || typeof step !== "object")
+        return false;
+      if (typeof step.number !== "number" || step.number <= 0)
+        return false;
+      if (typeof step.name !== "string" || step.name.trim() === "")
+        return false;
+      if (typeof step.status !== "string")
+        return false;
+      if (!Array.isArray(step.additionalInfo))
+        return false;
+    }
+    return true;
+  }
 };
 var PipelineTracker = class {
   api;
@@ -35257,10 +35396,19 @@ var PipelineTracker = class {
       content: "",
       embeds: [embed]
     };
-    const messageId = await this.api.sendMessage(message);
-    this.messageId = messageId;
+    try {
+      const messageId = await this.api.sendMessage(message);
+      this.messageId = messageId;
+      console.log(`\u2705 Pipeline tracking initialized - Discord message created (ID: ${messageId})`);
+    } catch (error2) {
+      console.error("\u274C Failed to create initial Discord message");
+      console.error("   Error:", error2 instanceof Error ? error2.message : String(error2));
+      console.warn("\u26A0\uFE0F  Pipeline will continue without Discord notifications");
+      console.warn("   Check Discord API status, bot permissions, and channel accessibility");
+      this.messageId = void 0;
+    }
     const state = {
-      messageId,
+      messageId: this.messageId || "",
       prNumber: parseInt(prNumber, 10) || 0,
       prTitle,
       author,
@@ -35269,14 +35417,28 @@ var PipelineTracker = class {
       steps: this.steps,
       pipelineStartedAt: this.pipelineStartedAt
     };
-    await this.storage.savePipelineState(state);
+    try {
+      await this.storage.savePipelineState(state);
+      console.log("\u2705 Pipeline state saved successfully");
+    } catch (error2) {
+      console.error("\u274C Critical: Failed to save initial pipeline state");
+      console.error("   Error:", error2 instanceof Error ? error2.message : String(error2));
+      console.error("   Impact: Subsequent step updates may fail or be inconsistent");
+      console.error("   Recommendation: Check file system permissions and storage configuration");
+      console.warn("\u26A0\uFE0F  Continuing with degraded functionality - state persistence disabled");
+    }
   }
   /// Updates a step in the pipeline
   async updateStep(stepNumber, totalSteps, stepName, status, additionalInfo) {
     try {
       await this.loadState();
     } catch (error2) {
-      console.error("Failed to load pipeline state:", error2);
+      console.error("\u274C Critical: Failed to load pipeline state from storage");
+      console.error("   Error details:", error2 instanceof Error ? error2.message : String(error2));
+      console.error("   Stack trace:", error2 instanceof Error ? error2.stack : "No stack trace available");
+      console.error("   Impact: Continuing with current in-memory state, which may be stale or incomplete");
+      console.error("   Recommendation: Check file system permissions and storage configuration");
+      console.warn("\u26A0\uFE0F  Operating with potentially stale state - Discord updates may be inconsistent");
     }
     if (stepNumber <= 0 || totalSteps <= 0 || stepNumber > totalSteps) {
       throw TrackerError.invalidStepNumber(stepNumber);
@@ -35298,16 +35460,6 @@ var PipelineTracker = class {
       StepInfoManager.markCompleted(step);
     }
     if (this.prInfo && this.pipelineStartedAt) {
-      const embed = buildStepUpdateEmbed(this.prInfo.number, this.prInfo.title, this.steps, stepNumber, totalSteps);
-      const message = {
-        content: "",
-        embeds: [embed]
-      };
-      if (this.messageId) {
-        await this.api.updateMessage(this.messageId, message);
-      }
-    }
-    if (this.prInfo && this.pipelineStartedAt) {
       const state = {
         messageId: this.messageId || "",
         prNumber: parseInt(this.prInfo.number, 10) || 0,
@@ -35318,12 +35470,60 @@ var PipelineTracker = class {
         steps: this.steps,
         pipelineStartedAt: this.pipelineStartedAt
       };
-      await this.storage.savePipelineState(state);
+      try {
+        await this.saveStateWithValidation(state);
+        console.log(`\u2705 Pipeline state saved before Discord API call for step ${stepNumber}`);
+      } catch (error2) {
+        console.error("\u274C Critical: Failed to save pipeline state before Discord API call");
+        console.error("   Step details:", { stepNumber, stepName, status });
+        console.error("   Error:", error2 instanceof Error ? error2.message : String(error2));
+        console.error("   Impact: Cannot proceed with Discord update due to state persistence failure");
+        console.warn("\u26A0\uFE0F  Aborting Discord update to maintain state consistency");
+        console.warn("   Recommendation: Check file system permissions and available disk space");
+        return;
+      }
+    } else {
+      console.warn("\u26A0\uFE0F  Cannot save state - missing PR info or pipeline start time");
+      console.warn("   Skipping Discord update to prevent inconsistent state");
+      return;
+    }
+    if (this.prInfo && this.pipelineStartedAt) {
+      const embed = buildStepUpdateEmbed(this.prInfo.number, this.prInfo.title, this.steps, stepNumber, totalSteps);
+      const message = {
+        content: "",
+        embeds: [embed]
+      };
+      if (this.messageId) {
+        try {
+          await this.api.updateMessage(this.messageId, message);
+          console.log(`\u2705 Discord message updated successfully for step ${stepNumber}: ${stepName}`);
+        } catch (error2) {
+          console.error("\u274C Discord API unavailable - step update failed but state remains consistent");
+          console.error("   Step details:", { stepNumber, stepName, status });
+          console.error("   Error:", error2 instanceof Error ? error2.message : String(error2));
+          console.warn("\u26A0\uFE0F  Pipeline tracking continues locally with consistent state");
+          console.warn("   Users will not see real-time updates until Discord API is restored");
+          console.warn("   Consider checking Discord API status and bot permissions");
+        }
+      } else {
+        console.warn("\u26A0\uFE0F  No Discord message ID available - cannot update Discord embed");
+        console.warn("   This may indicate the initial message creation failed");
+      }
+    } else {
+      console.warn("\u26A0\uFE0F  Missing PR info or pipeline start time - cannot update Discord message");
+      console.warn("   This may indicate incomplete pipeline initialization");
     }
   }
   /// Completes the pipeline
   async completePipeline() {
-    await this.loadState();
+    try {
+      await this.loadState();
+    } catch (error2) {
+      console.error("\u274C Critical: Failed to load pipeline state during completion");
+      console.error("   Error details:", error2 instanceof Error ? error2.message : String(error2));
+      console.error("   Impact: Final Discord update may be incomplete or missing");
+      console.warn("\u26A0\uFE0F  Proceeding with completion using available state");
+    }
     if (this.prInfo && this.pipelineStartedAt) {
       const totalSteps = this.steps.length > 0 ? this.steps.length : 1;
       const embed = buildCompletionEmbed(this.prInfo.number, this.prInfo.title, this.steps, totalSteps, this.pipelineStartedAt);
@@ -35332,10 +35532,29 @@ var PipelineTracker = class {
         embeds: [embed]
       };
       if (this.messageId) {
-        await this.api.updateMessage(this.messageId, message);
+        try {
+          await this.api.updateMessage(this.messageId, message);
+          console.log("\u2705 Pipeline completion message sent to Discord successfully");
+        } catch (error2) {
+          console.error("\u274C Discord API unavailable - completion notification failed");
+          console.error("   Error:", error2 instanceof Error ? error2.message : String(error2));
+          console.warn("\u26A0\uFE0F  Pipeline completed successfully but Discord notification failed");
+          console.warn("   Users will not see the completion status in Discord");
+        }
+      } else {
+        console.warn("\u26A0\uFE0F  No Discord message ID available for completion update");
       }
+    } else {
+      console.warn("\u26A0\uFE0F  Missing PR info or pipeline start time for completion");
     }
-    await this.storage.clearPipelineState();
+    try {
+      await this.storage.clearPipelineState();
+      console.log("\u2705 Pipeline state cleared successfully");
+    } catch (error2) {
+      console.error("\u274C Failed to clear pipeline state after completion");
+      console.error("   Error:", error2 instanceof Error ? error2.message : String(error2));
+      console.warn("\u26A0\uFE0F  State file may need manual cleanup");
+    }
   }
   /// Loads pipeline state from storage
   async loadState() {
@@ -35353,32 +35572,183 @@ var PipelineTracker = class {
       this.pipelineStartedAt = new Date(state.pipelineStartedAt);
     }
   }
+  /// Validates state before saving to prevent corruption
+  validateStateBeforeSaving(state) {
+    if (this.storage.validateState) {
+      return this.storage.validateState(state);
+    }
+    if (!state || typeof state !== "object")
+      return false;
+    if (typeof state.messageId !== "string")
+      return false;
+    if (typeof state.prNumber !== "number" || state.prNumber < 0)
+      return false;
+    if (typeof state.prTitle !== "string" || state.prTitle.trim() === "")
+      return false;
+    if (typeof state.author !== "string" || state.author.trim() === "")
+      return false;
+    if (typeof state.repository !== "string" || state.repository.trim() === "")
+      return false;
+    if (typeof state.branch !== "string" || state.branch.trim() === "")
+      return false;
+    if (!Array.isArray(state.steps))
+      return false;
+    if (!(state.pipelineStartedAt instanceof Date) && typeof state.pipelineStartedAt !== "string")
+      return false;
+    for (const step of state.steps) {
+      if (!step || typeof step !== "object")
+        return false;
+      if (typeof step.number !== "number" || step.number <= 0)
+        return false;
+      if (typeof step.name !== "string" || step.name.trim() === "")
+        return false;
+      if (typeof step.status !== "string")
+        return false;
+      if (!Array.isArray(step.additionalInfo))
+        return false;
+    }
+    return true;
+  }
+  /// Safely saves state with validation
+  async saveStateWithValidation(state) {
+    if (!this.validateStateBeforeSaving(state)) {
+      console.error("\u274C State validation failed - refusing to save corrupted state");
+      console.error("   State details:", JSON.stringify(state, null, 2));
+      throw new Error("State validation failed - cannot save corrupted state");
+    }
+    try {
+      await this.storage.savePipelineState(state);
+    } catch (error2) {
+      console.error("\u274C Critical: Failed to save validated pipeline state");
+      console.error("   Error:", error2 instanceof Error ? error2.message : String(error2));
+      throw error2;
+    }
+  }
 };
 
 // dist/storage.js
 var fs = __toESM(require("fs/promises"));
 var path = __toESM(require("path"));
+var crypto2 = __toESM(require("crypto"));
 var FileStorage = class {
   filePath;
+  backupPath;
+  VERSION = "1.0.0";
   constructor() {
     const currentDir = process.cwd();
     this.filePath = path.join(currentDir, ".discord-pipeline-state");
+    this.backupPath = path.join(currentDir, ".discord-pipeline-state.backup");
   }
-  /// Saves the current pipeline state to a file
-  async savePipelineState(state) {
+  /// Calculates checksum for state integrity validation
+  calculateChecksum(state) {
+    const stateString = JSON.stringify(state, Object.keys(state).sort());
+    return crypto2.createHash("sha256").update(stateString).digest("hex");
+  }
+  /// Validates state with comprehensive checks and returns detailed result
+  validateStateDetailed(state) {
+    const errors = [];
+    let canRecover = true;
+    if (!state || typeof state !== "object") {
+      errors.push("State is not a valid object");
+      canRecover = false;
+      return { isValid: false, errors, canRecover };
+    }
+    if (typeof state.messageId !== "string") {
+      errors.push("messageId must be a string");
+    }
+    if (typeof state.prNumber !== "number" || state.prNumber < 0) {
+      errors.push("prNumber must be a non-negative number");
+    }
+    if (typeof state.prTitle !== "string" || state.prTitle.trim() === "") {
+      errors.push("prTitle must be a non-empty string");
+    }
+    if (typeof state.author !== "string" || state.author.trim() === "") {
+      errors.push("author must be a non-empty string");
+    }
+    if (typeof state.repository !== "string" || state.repository.trim() === "") {
+      errors.push("repository must be a non-empty string");
+    }
+    if (typeof state.branch !== "string" || state.branch.trim() === "") {
+      errors.push("branch must be a non-empty string");
+    }
+    if (!Array.isArray(state.steps)) {
+      errors.push("steps must be an array");
+      canRecover = false;
+    }
+    if (!(state.pipelineStartedAt instanceof Date) && typeof state.pipelineStartedAt !== "string") {
+      errors.push("pipelineStartedAt must be a Date or string");
+    }
+    if (Array.isArray(state.steps)) {
+      for (let i = 0; i < state.steps.length; i++) {
+        const step = state.steps[i];
+        if (!step || typeof step !== "object") {
+          errors.push(`Step ${i} is not a valid object`);
+          continue;
+        }
+        if (typeof step.number !== "number" || step.number <= 0) {
+          errors.push(`Step ${i} number must be a positive number`);
+        }
+        if (typeof step.name !== "string" || step.name.trim() === "") {
+          errors.push(`Step ${i} name must be a non-empty string`);
+        }
+        if (typeof step.status !== "string") {
+          errors.push(`Step ${i} status must be a string`);
+        }
+        if (!Array.isArray(step.additionalInfo)) {
+          errors.push(`Step ${i} additionalInfo must be an array`);
+          continue;
+        }
+        for (let j = 0; j < step.additionalInfo.length; j++) {
+          const info2 = step.additionalInfo[j];
+          if (!Array.isArray(info2) || info2.length !== 2) {
+            errors.push(`Step ${i} additionalInfo[${j}] must be a tuple of length 2`);
+          } else if (typeof info2[0] !== "string" || typeof info2[1] !== "string") {
+            errors.push(`Step ${i} additionalInfo[${j}] must contain only strings`);
+          }
+        }
+      }
+    }
+    return { isValid: errors.length === 0, errors, canRecover };
+  }
+  /// Validates state before saving to prevent corruption (public interface)
+  validateState(state) {
+    return this.validateStateDetailed(state).isValid;
+  }
+  /// Creates a backup of the current state file before modifications
+  async createBackup() {
     try {
-      const json = JSON.stringify(state, null, 2);
-      await fs.writeFile(this.filePath, json, "utf-8");
+      await fs.access(this.filePath);
+      await fs.copyFile(this.filePath, this.backupPath);
     } catch (error2) {
-      throw TrackerError.fileSystemError(error2);
+      if (error2.code !== "ENOENT") {
+        throw TrackerError.fileSystemError(error2);
+      }
     }
   }
-  /// Loads the pipeline state from a file
-  async loadPipelineState() {
+  /// Attempts to restore state from backup file
+  async restoreFromBackup() {
     try {
-      const content = await fs.readFile(this.filePath, "utf-8");
+      const content = await fs.readFile(this.backupPath, "utf-8");
       if (content.trim() === "") {
         return null;
+      }
+      try {
+        const stateWithMetadata = JSON.parse(content);
+        if (stateWithMetadata.state && stateWithMetadata.metadata) {
+          const calculatedChecksum = this.calculateChecksum(stateWithMetadata.state);
+          if (calculatedChecksum === stateWithMetadata.metadata.checksum) {
+            const state2 = {
+              ...stateWithMetadata.state,
+              pipelineStartedAt: new Date(stateWithMetadata.state.pipelineStartedAt),
+              steps: stateWithMetadata.state.steps.map((step) => ({
+                ...step,
+                completedAt: step.completedAt ? new Date(step.completedAt) : void 0
+              }))
+            };
+            return state2;
+          }
+        }
+      } catch {
       }
       const rawState = JSON.parse(content);
       const state = {
@@ -35397,7 +35767,105 @@ var FileStorage = class {
       throw TrackerError.jsonError(error2);
     }
   }
-  /// Clears the pipeline state file
+  /// Attempts to recover from corrupted state file using backup or validation
+  async recoverCorruptedState() {
+    try {
+      const backupState = await this.restoreFromBackup();
+      if (backupState) {
+        const validation = this.validateStateDetailed(backupState);
+        if (validation.isValid) {
+          await fs.copyFile(this.backupPath, this.filePath);
+          return backupState;
+        }
+      }
+      return null;
+    } catch (error2) {
+      return null;
+    }
+  }
+  /// Saves the current pipeline state to a file with backup and validation
+  async savePipelineState(state) {
+    try {
+      const validation = this.validateStateDetailed(state);
+      if (!validation.isValid) {
+        throw new Error(`State validation failed: ${validation.errors.join(", ")}`);
+      }
+      await this.createBackup();
+      const checksum = this.calculateChecksum(state);
+      const stateWithMetadata = {
+        state,
+        metadata: {
+          version: this.VERSION,
+          lastUpdated: (/* @__PURE__ */ new Date()).toISOString(),
+          checksum
+        }
+      };
+      const json = JSON.stringify(stateWithMetadata, null, 2);
+      await fs.writeFile(this.filePath, json, "utf-8");
+    } catch (error2) {
+      throw TrackerError.fileSystemError(error2);
+    }
+  }
+  /// Loads the pipeline state from a file with validation and recovery
+  async loadPipelineState() {
+    try {
+      const content = await fs.readFile(this.filePath, "utf-8");
+      if (content.trim() === "") {
+        return null;
+      }
+      try {
+        const stateWithMetadata = JSON.parse(content);
+        if (stateWithMetadata.state && stateWithMetadata.metadata) {
+          const calculatedChecksum = this.calculateChecksum(stateWithMetadata.state);
+          if (calculatedChecksum !== stateWithMetadata.metadata.checksum) {
+            console.warn("State file checksum mismatch, attempting recovery...");
+            return await this.recoverCorruptedState();
+          }
+          const state2 = {
+            ...stateWithMetadata.state,
+            pipelineStartedAt: new Date(stateWithMetadata.state.pipelineStartedAt),
+            steps: stateWithMetadata.state.steps.map((step) => ({
+              ...step,
+              completedAt: step.completedAt ? new Date(step.completedAt) : void 0
+            }))
+          };
+          const validation2 = this.validateStateDetailed(state2);
+          if (!validation2.isValid) {
+            console.warn("Loaded state failed validation, attempting recovery...");
+            return await this.recoverCorruptedState();
+          }
+          return state2;
+        }
+      } catch {
+      }
+      const rawState = JSON.parse(content);
+      const state = {
+        ...rawState,
+        pipelineStartedAt: new Date(rawState.pipelineStartedAt),
+        steps: rawState.steps.map((step) => ({
+          ...step,
+          completedAt: step.completedAt ? new Date(step.completedAt) : void 0
+        }))
+      };
+      const validation = this.validateStateDetailed(state);
+      if (!validation.isValid) {
+        console.warn("Legacy state failed validation, attempting recovery...");
+        return await this.recoverCorruptedState();
+      }
+      return state;
+    } catch (error2) {
+      if (error2.code === "ENOENT") {
+        return null;
+      }
+      console.warn("State file parsing failed, attempting recovery...");
+      try {
+        return await this.recoverCorruptedState();
+      } catch (recoveryError) {
+        throw TrackerError.jsonError(error2);
+      }
+    }
+  }
+  /// Clears the pipeline state file and backup
   async clearPipelineState() {
     try {
       await fs.unlink(this.filePath);
@@ -35406,9 +35874,19 @@ var FileStorage = class {
         throw TrackerError.fileSystemError(error2);
       }
     }
+    try {
+      await fs.unlink(this.backupPath);
+    } catch (error2) {
+      if (error2.code !== "ENOENT") {
+        console.warn("Failed to clean up backup file:", error2.message);
+      }
+    }
   }
   getFilePath() {
     return this.filePath;
+  }
+  getBackupPath() {
+    return this.backupPath;
   }
 };
 

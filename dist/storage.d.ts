@@ -12,11 +12,20 @@ interface LegacyPipelineState {
 }
 export declare class FileStorage implements Storage {
     private filePath;
+    private backupPath;
+    private readonly VERSION;
     constructor();
+    private calculateChecksum;
+    private validateStateDetailed;
+    validateState(state: InternalPipelineState): boolean;
+    createBackup(): Promise<void>;
+    restoreFromBackup(): Promise<InternalPipelineState | null>;
+    private recoverCorruptedState;
     savePipelineState(state: InternalPipelineState): Promise<void>;
     loadPipelineState(): Promise<InternalPipelineState | null>;
     clearPipelineState(): Promise<void>;
     getFilePath(): string;
+    getBackupPath(): string;
 }
 export declare class MessageStorage {
     private filePath;

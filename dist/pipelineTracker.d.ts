@@ -13,12 +13,17 @@ export interface Storage {
     savePipelineState(state: InternalPipelineState): Promise<void>;
     clearPipelineState(): Promise<void>;
     loadPipelineState(): Promise<InternalPipelineState | null>;
+    validateState?(state: InternalPipelineState): boolean;
+    createBackup?(): Promise<void>;
+    restoreFromBackup?(): Promise<InternalPipelineState | null>;
 }
 export declare class InMemoryStorage implements Storage {
     private state;
     savePipelineState(state: InternalPipelineState): Promise<void>;
     clearPipelineState(): Promise<void>;
     loadPipelineState(): Promise<InternalPipelineState | null>;
+    validateState(state: InternalPipelineState): boolean;
+    private isValidState;
 }
 export declare class PipelineTracker {
     private api;
@@ -32,5 +37,7 @@ export declare class PipelineTracker {
     updateStep(stepNumber: number, totalSteps: number, stepName: string, status: string, additionalInfo: [string, string][]): Promise<void>;
     completePipeline(): Promise<void>;
     loadState(): Promise<void>;
+    private validateStateBeforeSaving;
+    private saveStateWithValidation;
 }
 //# sourceMappingURL=pipelineTracker.d.ts.map

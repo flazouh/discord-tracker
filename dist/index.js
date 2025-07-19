@@ -34877,10 +34877,6 @@ function validateBotToken(token) {
   if (token.trim().length === 0) {
     throw TrackerError.missingRequiredInput("discord_bot_token");
   }
-  const tokenPattern = /^\d+\.[A-Za-z0-9_-]{23,28}\.[A-Za-z0-9_-]{6,7}$/;
-  if (!tokenPattern.test(token)) {
-    throw new TrackerError("Invalid Discord bot token format", "INVALID_BOT_TOKEN");
-  }
 }
 function validateChannelId(channelId) {
   if (!channelId || typeof channelId !== "string") {

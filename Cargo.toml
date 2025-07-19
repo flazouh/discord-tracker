@@ -49,6 +49,12 @@ codegen-units = 1
 panic = "abort"
 strip = true
 
+# Build optimizations for faster compilation
 [profile.dev]
 opt-level = 0
-debug = true 
+debug = true
+
+# Faster builds in CI/Docker
+[profile.release.build-override]
+opt-level = 0
+debug = false 

@@ -1,0 +1,43 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Rust build artifacts
+target/
+**/target/
+
+# Cargo (keep Cargo.lock for reproducible builds)
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# GitHub Actions
+.github/
+
+# Scripts (not needed in container)
+scripts/
+
+# Tests
+tests/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp 

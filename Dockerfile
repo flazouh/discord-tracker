@@ -16,7 +16,7 @@ RUN rm src/*.rs
 COPY ./src ./src
 
 # build for release
-RUN rm ./target/release/deps/discord_tracker*
+RUN rm ./target/release/deps/discord_tracker_action*
 RUN cargo build --release
 
 # verify the binary exists

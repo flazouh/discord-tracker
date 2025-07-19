@@ -11,11 +11,23 @@ import {
   StepStatusHelper,
 } from './models';
 
+// Internal pipeline state interface (matches file storage format)
+interface InternalPipelineState {
+	messageId: string;
+	prNumber: number;
+	prTitle: string;
+	author: string;
+	repository: string;
+	branch: string;
+	steps: StepInfo[];
+	pipelineStartedAt: Date;
+}
+
 // Storage interface for dependency injection
 export interface Storage {
-  savePipelineState(state: PipelineState): Promise<void>;
-  clearPipelineState(): Promise<void>;
-  loadPipelineState(): Promise<PipelineState | null>;
+	savePipelineState(state: InternalPipelineState): Promise<void>;
+	clearPipelineState(): Promise<void>;
+	loadPipelineState(): Promise<InternalPipelineState | null>;
 }
 
 // In-memory storage implementation (for testing and simple use cases)
@@ -81,15 +93,15 @@ export class PipelineTracker {
     this.messageId = messageId;
 
     // Save state
-    const state: PipelineState = {
-      messageId: messageId,
-      prNumber: parseInt(prNumber, 10) || 0,
-      prTitle: prTitle,
-      author: author,
-      repository: repository,
-      branch: branch,
-      steps: this.steps,
-      pipelineStartedAt: this.pipelineStartedAt,
+    const state: InternalPipelineState = {
+    	messageId: messageId,
+    	prNumber: parseInt(prNumber, 10) || 0,
+    	prTitle: prTitle,
+    	author: author,
+    	repository: repository,
+    	branch: branch,
+    	steps: this.steps,
+    	pipelineStartedAt: this.pipelineStartedAt,
     };
     await this.storage.savePipelineState(state);
   }

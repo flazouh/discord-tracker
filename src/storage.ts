@@ -4,16 +4,28 @@ import { TrackerError } from './error';
 import { StepInfo, PipelineState } from './models';
 import { Storage } from './pipelineTracker';
 
-// Interface corresponding to Rust's PipelineState struct (legacy format)
+// Internal pipeline state interface (matches PipelineTracker format)
+interface InternalPipelineState {
+	messageId: string;
+	prNumber: number;
+	prTitle: string;
+	author: string;
+	repository: string;
+	branch: string;
+	steps: StepInfo[];
+	pipelineStartedAt: Date;
+}
+
+// Legacy format for backward compatibility
 interface LegacyPipelineState {
-  message_id: string;
-  pr_number: number;
-  pr_title: string;
-  author: string;
-  repository: string;
-  branch: string;
-  steps: StepInfo[];
-  pipeline_started_at: Date;
+	message_id: string;
+	pr_number: number;
+	pr_title: string;
+	author: string;
+	repository: string;
+	branch: string;
+	steps: StepInfo[];
+	pipeline_started_at: Date;
 }
 
 /// File-based storage implementation that implements the Storage interface

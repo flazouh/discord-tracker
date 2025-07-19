@@ -28,7 +28,16 @@ export class FileStorage {
             if (content.trim() === '') {
                 return null; // File is empty
             }
-            const state = JSON.parse(content);
+            const rawState = JSON.parse(content);
+            // Convert Date strings back to Date objects
+            const state = {
+                ...rawState,
+                pipelineStartedAt: new Date(rawState.pipelineStartedAt),
+                steps: rawState.steps.map((step) => ({
+                    ...step,
+                    completedAt: step.completedAt ? new Date(step.completedAt) : undefined
+                }))
+            };
             return state;
         }
         catch (error) {

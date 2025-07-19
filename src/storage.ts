@@ -2,19 +2,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { TrackerError } from './error';
 import { StepInfo, PipelineState } from './models';
-import { Storage } from './pipelineTracker';
-
-// Internal pipeline state interface (matches PipelineTracker format)
-interface InternalPipelineState {
-	messageId: string;
-	prNumber: number;
-	prTitle: string;
-	author: string;
-	repository: string;
-	branch: string;
-	steps: StepInfo[];
-	pipelineStartedAt: Date;
-}
+import { Storage, InternalPipelineState } from './pipelineTracker';
 
 // Legacy format for backward compatibility
 interface LegacyPipelineState {
@@ -40,7 +28,7 @@ export class FileStorage implements Storage {
   }
 
   /// Saves the current pipeline state to a file
-  async savePipelineState(state: PipelineState): Promise<void> {
+  async savePipelineState(state: InternalPipelineState): Promise<void> {
     try {
       const json = JSON.stringify(state, null, 2); // Pretty print JSON
       await fs.writeFile(this.filePath, json, 'utf-8');
@@ -50,14 +38,25 @@ export class FileStorage implements Storage {
   }
 
   /// Loads the pipeline state from a file
-  async loadPipelineState(): Promise<PipelineState | null> {
+  async loadPipelineState(): Promise<InternalPipelineState | null> {
     try {
       const content = await fs.readFile(this.filePath, 'utf-8');
       // Check if content is empty AFTER reading it successfully
       if (content.trim() === '') {
         return null; // File is empty
       }
-      const state: PipelineState = JSON.parse(content);
+      const rawState = JSON.parse(content);
+      
+      // Convert Date strings back to Date objects
+      const state: InternalPipelineState = {
+        ...rawState,
+        pipelineStartedAt: new Date(rawState.pipelineStartedAt),
+        steps: rawState.steps.map((step: any) => ({
+          ...step,
+          completedAt: step.completedAt ? new Date(step.completedAt) : undefined
+        }))
+      };
+      
       return state;
     } catch (error: any) {
       // If file doesn't exist, return null

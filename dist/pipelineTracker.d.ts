@@ -1,5 +1,5 @@
-import { type PipelineState, type StepInfo } from './models';
-interface InternalPipelineState {
+import { type StepInfo } from './models';
+export interface InternalPipelineState {
     messageId: string;
     prNumber: number;
     prTitle: string;
@@ -16,9 +16,9 @@ export interface Storage {
 }
 export declare class InMemoryStorage implements Storage {
     private state;
-    savePipelineState(state: PipelineState): Promise<void>;
+    savePipelineState(state: InternalPipelineState): Promise<void>;
     clearPipelineState(): Promise<void>;
-    loadPipelineState(): Promise<PipelineState | null>;
+    loadPipelineState(): Promise<InternalPipelineState | null>;
 }
 export declare class PipelineTracker {
     private api;
@@ -33,5 +33,4 @@ export declare class PipelineTracker {
     completePipeline(): Promise<void>;
     loadState(): Promise<void>;
 }
-export {};
 //# sourceMappingURL=pipelineTracker.d.ts.map

@@ -12,7 +12,7 @@ import {
 } from './models';
 
 // Internal pipeline state interface (matches file storage format)
-interface InternalPipelineState {
+export interface InternalPipelineState {
 	messageId: string;
 	prNumber: number;
 	prTitle: string;
@@ -32,9 +32,9 @@ export interface Storage {
 
 // In-memory storage implementation (for testing and simple use cases)
 export class InMemoryStorage implements Storage {
-  private state: PipelineState | null = null;
+  private state: InternalPipelineState | null = null;
 
-  async savePipelineState(state: PipelineState): Promise<void> {
+  async savePipelineState(state: InternalPipelineState): Promise<void> {
     this.state = state;
   }
 
@@ -42,7 +42,7 @@ export class InMemoryStorage implements Storage {
     this.state = null;
   }
 
-  async loadPipelineState(): Promise<PipelineState | null> {
+  async loadPipelineState(): Promise<InternalPipelineState | null> {
     return this.state;
   }
 }
@@ -223,7 +223,8 @@ export class PipelineTracker {
         repository: state.repository,
         branch: state.branch,
       };
-      this.pipelineStartedAt = state.pipelineStartedAt;
+      // Convert string back to Date object when loading from JSON
+      this.pipelineStartedAt = new Date(state.pipelineStartedAt);
     }
   }
 }

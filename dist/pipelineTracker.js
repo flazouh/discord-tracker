@@ -146,7 +146,8 @@ export class PipelineTracker {
                 repository: state.repository,
                 branch: state.branch,
             };
-            this.pipelineStartedAt = state.pipelineStartedAt;
+            // Convert string back to Date object when loading from JSON
+            this.pipelineStartedAt = new Date(state.pipelineStartedAt);
         }
     }
 }

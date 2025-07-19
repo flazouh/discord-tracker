@@ -1,5 +1,5 @@
-import { StepInfo, PipelineState } from './models';
-import { Storage } from './pipelineTracker';
+import { StepInfo } from './models';
+import { Storage, InternalPipelineState } from './pipelineTracker';
 interface LegacyPipelineState {
     message_id: string;
     pr_number: number;
@@ -13,8 +13,8 @@ interface LegacyPipelineState {
 export declare class FileStorage implements Storage {
     private filePath;
     constructor();
-    savePipelineState(state: PipelineState): Promise<void>;
-    loadPipelineState(): Promise<PipelineState | null>;
+    savePipelineState(state: InternalPipelineState): Promise<void>;
+    loadPipelineState(): Promise<InternalPipelineState | null>;
     clearPipelineState(): Promise<void>;
     getFilePath(): string;
 }

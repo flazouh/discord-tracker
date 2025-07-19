@@ -35345,7 +35345,7 @@ var PipelineTracker = class {
         repository: state.repository,
         branch: state.branch
       };
-      this.pipelineStartedAt = state.pipelineStartedAt;
+      this.pipelineStartedAt = new Date(state.pipelineStartedAt);
     }
   }
 };
@@ -35375,7 +35375,15 @@ var FileStorage = class {
       if (content.trim() === "") {
         return null;
       }
-      const state = JSON.parse(content);
+      const rawState = JSON.parse(content);
+      const state = {
+        ...rawState,
+        pipelineStartedAt: new Date(rawState.pipelineStartedAt),
+        steps: rawState.steps.map((step) => ({
+          ...step,
+          completedAt: step.completedAt ? new Date(step.completedAt) : void 0
+        }))
+      };
       return state;
     } catch (error2) {
       if (error2.code === "ENOENT") {

@@ -9,6 +9,8 @@ on:
 
 jobs:
   auto-release:
+    # Skip if commit message contains [skip actions]
+    if: "!contains(github.event.head_commit.message, '[skip actions]')"
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -54,7 +56,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add Cargo.toml
-          git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
+          git commit -m "chore: bump version to $NEW_VERSION [skip actions]"
           git push origin main
 
       - name: Create and push tag

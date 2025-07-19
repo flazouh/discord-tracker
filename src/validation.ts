@@ -14,15 +14,6 @@ export function validateBotToken(token: string): void {
 		throw TrackerError.missingRequiredInput("discord_bot_token");
 	}
 
-	// Basic Discord bot token format validation
-	// Discord bot tokens typically start with a number and contain dots
-	const tokenPattern = /^\d+\.[A-Za-z0-9_-]{23,28}\.[A-Za-z0-9_-]{6,7}$/;
-	if (!tokenPattern.test(token)) {
-		throw new TrackerError(
-			"Invalid Discord bot token format",
-			"INVALID_BOT_TOKEN",
-		);
-	}
 }
 
 /**

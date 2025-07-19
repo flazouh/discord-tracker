@@ -1,4 +1,4 @@
-FROM rust:1.75 as build
+FROM rust:1.76 AS build
 
 # create a new empty shell project
 RUN USER=root cargo new --bin discord-tracker-action

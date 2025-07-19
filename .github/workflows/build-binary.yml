@@ -1,10 +1,11 @@
-name: Build for GitHub Actions
+name: Build Binary for GitHub Actions
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -27,13 +28,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Build Linux binary
+      - name: Build binary
         run: |
           cargo build --release
-          cp target/release/discord-tracker discord-tracker-linux-x64
+          cp target/release/discord-tracker discord-tracker
 
-      - name: Upload binary
+      - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
-          name: discord-tracker-linux-x64
-          path: discord-tracker-linux-x64 
+          name: discord-tracker-binary
+          path: discord-tracker
+          retention-days: 30 

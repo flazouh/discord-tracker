@@ -107,6 +107,8 @@ Your Discord bot needs these permissions:
 
 ### GitHub Actions Integration
 
+#### Method 1: Direct Download (Recommended)
+
 ```yaml
 name: CI/CD Pipeline
 
@@ -124,11 +126,11 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download Discord Tracker
         run: |
-          curl -L -o discord-tracker https://github.com/fluentai/discord-tracker/releases/latest/download/discord-tracker-linux-x64
+          curl -L -o discord-tracker https://github.com/flazouh/discord-tracker/releases/download/v0.2.1/discord-tracker-linux-x64
           chmod +x discord-tracker
 
       - name: Initialize Discord Tracker
@@ -161,6 +163,51 @@ jobs:
           ./discord-tracker fail \
             --step-name "Pipeline Step" \
             --error-message "An error occurred during pipeline execution"
+```
+
+#### Method 2: Using Latest Release
+
+```yaml
+      - name: Download Discord Tracker
+        run: |
+          curl -L -o discord-tracker https://github.com/flazouh/discord-tracker/releases/latest/download/discord-tracker-linux-x64
+          chmod +x discord-tracker
+```
+
+#### Method 3: Using Reusable Workflow
+
+```yaml
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  download-tracker:
+    uses: flazouh/discord-tracker/.github/workflows/download-binary.yml@main
+    with:
+      version: 'v0.2.1'
+      platform: 'linux-x64'
+
+  build-and-deploy:
+    needs: download-tracker
+    runs-on: ubuntu-latest
+    env:
+      DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+      DISCORD_CHANNEL_ID: "1395895302564872263"
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download Discord Tracker
+        run: |
+          curl -L -o discord-tracker https://github.com/flazouh/discord-tracker/releases/download/v0.2.1/discord-tracker-linux-x64
+          chmod +x discord-tracker
+
+      # ... rest of your pipeline steps ...
 ```
 
 ## 📊 Example Output

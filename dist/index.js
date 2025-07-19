@@ -35439,7 +35439,10 @@ async function run() {
           try {
             const parsedInfo = JSON.parse(additionalInfo);
             if (typeof parsedInfo === "object" && parsedInfo !== null) {
-              additionalInfoPairs = Object.entries(parsedInfo).map(([key, value]) => [key, String(value)]);
+              additionalInfoPairs = Object.entries(parsedInfo).map(([key, value]) => [
+                key,
+                String(value)
+              ]);
             }
           } catch (e) {
             core.warning("Failed to parse additionalInfo JSON, continuing with empty additional info");
@@ -35458,9 +35461,7 @@ async function run() {
           throw new Error("Missing required parameters for fail action");
         }
         core.error(`Pipeline failed at step: ${stepName}`);
-        result = await tracker.updateStep(1, 1, stepName, "failed", [
-          ["error", errorMessage]
-        ]);
+        result = await tracker.updateStep(1, 1, stepName, "failed", [["error", errorMessage]]);
         break;
       default:
         throw new Error(`Invalid action: ${action}`);

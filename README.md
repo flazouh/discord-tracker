@@ -347,6 +347,45 @@ Enable debug logging by setting the `ACTIONS_STEP_DEBUG` secret to `true` in you
    docker run --rm -e GITHUB_OUTPUT=/tmp/output discord-tracker-action:local init 123 'Test PR' username owner/repo main 1 1 'Test' success '{}' 'error' YOUR_BOT_TOKEN YOUR_CHANNEL_ID
    ```
 
+### Automated Release Options
+
+#### Option 1: GitHub Actions Workflow (Recommended)
+The repository includes an automated workflow that handles version management:
+
+1. **Automatic on push to main**: Automatically syncs to `v1` branch
+2. **Manual trigger**: Go to Actions → Version Manager → Run workflow
+3. **Custom versions**: Specify version (v1, v2, v3) in workflow inputs
+
+#### Option 2: Enhanced Release Script
+```bash
+# Basic release to v1
+./scripts/release.sh
+
+# Release to specific version
+./scripts/release.sh -v v2
+
+# Skip tests (for quick releases)
+./scripts/release.sh --skip-tests
+
+# Show help
+./scripts/release.sh -h
+```
+
+#### Option 3: GitHub CLI Automation
+```bash
+# Basic release
+./scripts/gh-release.sh
+
+# Create with GitHub release
+./scripts/gh-release.sh --release
+
+# Create draft release
+./scripts/gh-release.sh --release --draft
+
+# Release to specific version
+./scripts/gh-release.sh -v v2 --release
+```
+
 ### Project Structure
 
 ```

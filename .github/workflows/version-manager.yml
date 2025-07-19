@@ -1,0 +1,98 @@
+name: Version Manager
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1, v2)'
+        required: true
+        default: 'v1'
+      auto_merge:
+        description: 'Automatically merge to version branch'
+        required: false
+        default: 'true'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate version format
+        run: |
+          VERSION="${{ github.event.inputs.version || 'v1' }}"
+          if [[ ! $VERSION =~ ^v[0-9]+$ ]]; then
+            echo "❌ Invalid version format. Must be v1, v2, v3, etc."
+            exit 1
+          fi
+          echo "✅ Version format is valid: $VERSION"
+
+  sync-version:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION="${{ github.event.inputs.version || 'v1' }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION"
+
+      - name: Check if version branch exists
+        id: branch-check
+        run: |
+          if git ls-remote --heads origin ${{ steps.version.outputs.version }} | grep -q ${{ steps.version.outputs.version }}; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Version branch ${{ steps.version.outputs.version }} exists"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "Version branch ${{ steps.version.outputs.version }} does not exist"
+          fi
+
+      - name: Create or update version branch
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          
+          if [ "${{ steps.branch-check.outputs.exists }}" = "false" ]; then
+            echo "Creating new version branch: $VERSION"
+            git checkout -b $VERSION
+            git push origin $VERSION
+          else
+            echo "Updating existing version branch: $VERSION"
+            git checkout $VERSION
+            git merge main --no-edit
+          fi
+
+      - name: Push version branch
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          git push origin $VERSION
+          echo "✅ Successfully pushed $VERSION branch"
+
+      - name: Create release
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          gh release create $VERSION \
+            --title "Release $VERSION" \
+            --notes "Automated release for version $VERSION" \
+            --target $VERSION
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    needs: sync-version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify completion
+        run: |
+          VERSION="${{ github.event.inputs.version || 'v1' }}"
+          echo "🎉 Version $VERSION has been successfully synchronized!"
+          echo "📦 Docker build will be triggered automatically"
+          echo "🧪 Integration tests will run after build completion" 

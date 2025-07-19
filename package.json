@@ -1,6 +1,6 @@
 {
 	"name": "discord-pipeline-tracker",
-	"version": "1.0.17",
+	"version": "1.0.18",
 	"description": "Track CI/CD pipeline progress in Discord with real-time updates",
 	"main": "dist/index.js",
 	"scripts": {

@@ -75,9 +75,16 @@ jobs:
           TAG_VERSION="${{ steps.new-version.outputs.tag_version }}"
           NEW_VERSION="${{ steps.new-version.outputs.new_version }}"
           
-          git tag -a $TAG_VERSION -m "Release $TAG_VERSION"
-          git push origin $TAG_VERSION
-          echo "Created and pushed tag: $TAG_VERSION"
+          # Check if tag already exists
+          if git tag -l | grep -q "^$TAG_VERSION$"; then
+            echo "Tag $TAG_VERSION already exists, skipping tag creation"
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+          else
+            git tag -a $TAG_VERSION -m "Release $TAG_VERSION"
+            git push origin $TAG_VERSION
+            echo "Created and pushed tag: $TAG_VERSION"
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Update latest tag
         run: |
@@ -91,14 +98,19 @@ jobs:
           TAG_VERSION="${{ steps.new-version.outputs.tag_version }}"
           NEW_VERSION="${{ steps.new-version.outputs.new_version }}"
           
-          # Generate release notes
-          RELEASE_NOTES="## What's Changed\n\n- Automated release for version $NEW_VERSION\n- Discord Pipeline Tracker GitHub Action\n- Real-time CI/CD pipeline tracking in Discord\n- Support for pipeline initialization, step updates, completion, and failure handling\n\n## Version\n- **Version:** $NEW_VERSION\n- **Tag:** $TAG_VERSION\n\n## Usage\n\n\`\`\`yaml\n- uses: flazouh/discord-tracker@$TAG_VERSION\n  with:\n    action: 'init'\n    pr_number: \${{ github.event.number }}\n    discord_bot_token: \${{ secrets.DISCORD_BOT_TOKEN }}\n    discord_channel_id: \${{ secrets.DISCORD_CHANNEL_ID }}\n\`\`\`"
-          
-          # Create release
-          gh release create $TAG_VERSION \
-            --title "Release $TAG_VERSION" \
-            --notes "$RELEASE_NOTES" \
-            --target main
+          # Check if release already exists
+          if gh release view $TAG_VERSION >/dev/null 2>&1; then
+            echo "Release $TAG_VERSION already exists, skipping release creation"
+          else
+            # Generate release notes
+            RELEASE_NOTES="## What's Changed\n\n- Automated release for version $NEW_VERSION\n- Discord Pipeline Tracker GitHub Action\n- Real-time CI/CD pipeline tracking in Discord\n- Support for pipeline initialization, step updates, completion, and failure handling\n\n## Version\n- **Version:** $NEW_VERSION\n- **Tag:** $TAG_VERSION\n\n## Usage\n\n\`\`\`yaml\n- uses: flazouh/discord-tracker@$TAG_VERSION\n  with:\n    action: 'init'\n    pr_number: \${{ github.event.number }}\n    discord_bot_token: \${{ secrets.DISCORD_BOT_TOKEN }}\n    discord_channel_id: \${{ secrets.DISCORD_CHANNEL_ID }}\n\`\`\`"
+            
+            # Create release
+            gh release create $TAG_VERSION \
+              --title "Release $TAG_VERSION" \
+              --notes "$RELEASE_NOTES" \
+              --target main
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

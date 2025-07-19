@@ -66,6 +66,13 @@ jobs:
           git push origin $TAG_VERSION
           echo "Created and pushed tag: $TAG_VERSION"
 
+      - name: Update latest tag
+        run: |
+          TAG_VERSION="${{ steps.new-version.outputs.tag_version }}"
+          git tag -f latest $TAG_VERSION
+          git push origin latest --force
+          echo "Updated latest tag to point to $TAG_VERSION"
+
       - name: Create GitHub release
         run: |
           TAG_VERSION="${{ steps.new-version.outputs.tag_version }}"

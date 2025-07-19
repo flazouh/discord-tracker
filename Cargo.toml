@@ -1,6 +1,6 @@
 [package]
 name = "discord-tracker-action"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 authors = ["FluentAI Team"]
 description = "GitHub Action for tracking CI/CD pipeline progress in Discord"

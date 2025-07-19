@@ -433,3 +433,4 @@ If you encounter any issues or have questions, please:
 - Initial release
 - Support for pipeline initialization, step updates, completion, and failure handling
 - Rich Discord embeds with progress tracking # Updated README with latest fixes
+# Final release preparation

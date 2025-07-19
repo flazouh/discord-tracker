@@ -1,0 +1,45 @@
+{
+	"name": "discord-pipeline-tracker",
+	"version": "1.0.0",
+	"description": "Track CI/CD pipeline progress in Discord with real-time updates",
+	"main": "dist/index.js",
+	"type": "module",
+	"scripts": {
+		"build": "bun run tsc && bun run esbuild dist/index.js --bundle --platform=node --target=node18 --outfile=dist/index.bundle.js && mv dist/index.bundle.js dist/index.js",
+		"bundle": "bun run build",
+		"test": "bun test",
+		"test:watch": "bun test --watch",
+		"test:coverage": "bun test --coverage",
+		"format": "biome format --write .",
+		"lint": "biome lint .",
+		"check": "biome check --write .",
+		"dev": "bun run --watch src/main.ts",
+		"all": "bun run format && bun run lint && bun run test && bun run build"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.1.2",
+		"@types/node": "^24.0.15",
+		"@vitest/coverage-v8": "^3.2.4",
+		"@vitest/ui": "^3.2.4",
+		"esbuild": "^0.20.0",
+		"typescript": "^5.3.0",
+		"vitest": "^3.2.4"
+	},
+	"dependencies": {
+		"@actions/core": "^1.10.0",
+		"@actions/github": "^6.0.0",
+		"axios": "^1.10.0"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"keywords": [
+		"github-actions",
+		"discord",
+		"ci-cd",
+		"pipeline",
+		"tracking"
+	],
+	"author": "Your Name",
+	"license": "MIT"
+}

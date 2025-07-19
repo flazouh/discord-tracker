@@ -52,23 +52,8 @@ outputs:
     description: 'Whether the action completed successfully'
 
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  args:
-    - ${{ inputs.action }}
-    - ${{ inputs.pr_number }}
-    - ${{ inputs.pr_title }}
-    - ${{ inputs.author }}
-    - ${{ inputs.repository }}
-    - ${{ inputs.branch }}
-    - ${{ inputs.step_number }}
-    - ${{ inputs.total_steps }}
-    - ${{ inputs.step_name }}
-    - ${{ inputs.status }}
-    - ${{ inputs.additional_info }}
-    - ${{ inputs.error_message }}
-    - ${{ inputs.discord_bot_token }}
-    - ${{ inputs.discord_channel_id }}
+  using: 'node20'
+  main: 'dist/index.js'
 
 branding:
   icon: 'message-circle'

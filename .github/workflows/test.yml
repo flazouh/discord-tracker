@@ -1,75 +1,49 @@
-name: Test Docker Image
+name: Test Action
 
 on:
-  pull_request:
-    branches: [main]
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches: [main, v1]
+  pull_request:
+    branches: [main, v1]
 
 jobs:
-  test-docker:
+  test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
 
-      - name: Build and test Docker image
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run tests
+        run: bun test
+
+      - name: Build action
+        run: bun run build
+
+      - name: Verify build output
         run: |
-          # Build the image
-          docker build -t discord-tracker-action:test .
-          
-          # Test basic execution
-          echo "Testing basic execution..."
-          if docker run --rm -e GITHUB_OUTPUT=/tmp/test_output discord-tracker-action:test ./discord-tracker-action 2>&1 | grep -q "Insufficient arguments"; then
-            echo "✅ Basic execution test PASSED"
-          else
-            echo "❌ Basic execution test FAILED"
+          if [ ! -f "dist/index.js" ]; then
+            echo "❌ Build failed: dist/index.js not found"
             exit 1
           fi
+          echo "✅ Build successful: dist/index.js exists"
           
-          # Test argument parsing
-          echo "Testing argument parsing..."
-          if docker run --rm discord-tracker-action:test init "123" "Test" "user" "repo" "main" "1" "1" "Test" "success" "{}" "" "invalid" "invalid" 2>&1 | grep -q "Failed to create pipeline tracker"; then
-            echo "✅ Argument parsing test PASSED"
-          else
-            echo "❌ Argument parsing test FAILED"
+          # Check if the file is executable and has content
+          if [ ! -s "dist/index.js" ]; then
+            echo "❌ Build failed: dist/index.js is empty"
             exit 1
           fi
-          
-          # Test all action types
-          echo "Testing all action types..."
-          for action in init step complete fail; do
-            echo "Testing action: $action"
-            docker run --rm discord-tracker-action:test $action "123" "Test" "user" "repo" "main" "1" "1" "Test" "success" "{}" "" "invalid" "invalid" >/dev/null 2>&1 || true
-          done
-          echo "✅ All action types tested"
+          echo "✅ Build output has content"
 
-      - name: Check image size
-        run: |
-          IMAGE_SIZE=$(docker images discord-tracker-action:test --format "table {{.Size}}" | tail -n 1)
-          echo "Image size: $IMAGE_SIZE"
-          
-          # Extract numeric size for comparison
-          SIZE_NUM=$(echo $IMAGE_SIZE | sed 's/[^0-9.]//g')
-          if (( $(echo "$SIZE_NUM > 500" | bc -l) )); then
-            echo "⚠️  Warning: Image size is large ($IMAGE_SIZE)"
-          else
-            echo "✅ Image size is reasonable ($IMAGE_SIZE)"
-          fi
+      - name: Lint code
+        run: bun run lint
 
-      - name: Security scan (if available)
-        run: |
-          if command -v docker scout &> /dev/null; then
-            docker scout cves discord-tracker-action:test || echo "Security scan completed"
-          else
-            echo "docker scout not available, skipping security scan"
-          fi
-
-      - name: Cleanup
-        if: always()
-        run: |
-          docker rmi discord-tracker-action:test 2>/dev/null || true 
+      - name: Format check
+        run: bun run format --check . 

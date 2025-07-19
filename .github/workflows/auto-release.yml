@@ -21,10 +21,21 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build action
+        run: bun run build
+
       - name: Get current version
         id: current-version
         run: |
-          CURRENT_VERSION=$(grep '^version = ' Cargo.toml | cut -d'"' -f2)
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
           echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
           echo "Current version: $CURRENT_VERSION"
 
@@ -44,18 +55,18 @@ jobs:
           echo "tag_version=v$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "Bumped version from $CURRENT_VERSION to $NEW_VERSION"
 
-      - name: Update Cargo.toml version
+      - name: Update package.json version
         run: |
           NEW_VERSION="${{ steps.new-version.outputs.new_version }}"
-          sed -i "s/^version = \".*\"/version = \"$NEW_VERSION\"/" Cargo.toml
-          echo "Updated Cargo.toml to version $NEW_VERSION"
+          npm version $NEW_VERSION --no-git-tag-version
+          echo "Updated package.json to version $NEW_VERSION"
 
       - name: Commit version bump
         run: |
           NEW_VERSION="${{ steps.new-version.outputs.new_version }}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add Cargo.toml
+          git add package.json
           git commit -m "chore: bump version to $NEW_VERSION [skip actions]"
           git push origin main
 
@@ -81,7 +92,7 @@ jobs:
           NEW_VERSION="${{ steps.new-version.outputs.new_version }}"
           
           # Generate release notes
-          RELEASE_NOTES="## What's Changed\n\n- Automated release for version $NEW_VERSION\n- Production deployment improvements\n- Docker and GitHub Action optimizations\n\n## Version\n- **Version:** $NEW_VERSION\n- **Tag:** $TAG_VERSION\n\n## Usage\n\n\`\`\`yaml\n- uses: flazouh/discord-tracker@$TAG_VERSION\n\`\`\`"
+          RELEASE_NOTES="## What's Changed\n\n- Automated release for version $NEW_VERSION\n- Discord Pipeline Tracker GitHub Action\n- Real-time CI/CD pipeline tracking in Discord\n- Support for pipeline initialization, step updates, completion, and failure handling\n\n## Version\n- **Version:** $NEW_VERSION\n- **Tag:** $TAG_VERSION\n\n## Usage\n\n\`\`\`yaml\n- uses: flazouh/discord-tracker@$TAG_VERSION\n  with:\n    action: 'init'\n    pr_number: \${{ github.event.number }}\n    discord_bot_token: \${{ secrets.DISCORD_BOT_TOKEN }}\n    discord_channel_id: \${{ secrets.DISCORD_CHANNEL_ID }}\n\`\`\`"
           
           # Create release
           gh release create $TAG_VERSION \

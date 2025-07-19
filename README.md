@@ -337,71 +337,30 @@ Enable debug logging by setting the `ACTIONS_STEP_DEBUG` secret to `true` in you
    cd discord-tracker
    ```
 
-2. Run the development setup script:
+2. Install dependencies:
    ```bash
-   ./scripts/dev-setup.sh
+   bun install
    ```
 
-3. Test the action locally:
+3. Run tests:
    ```bash
-   docker run --rm -e GITHUB_OUTPUT=/tmp/output discord-tracker-action:local init 123 'Test PR' username owner/repo main 1 1 'Test' success '{}' 'error' YOUR_BOT_TOKEN YOUR_CHANNEL_ID
+   bun test
    ```
 
-### Testing Before Release
+### Testing
 
-Before pushing changes or creating a release, you can test the Docker image locally:
+The project includes comprehensive tests for all components:
 
-#### Quick Test (Recommended for development)
 ```bash
-./scripts/quick-test.sh
+# Run all tests
+bun test
+
+# Run tests with coverage
+bun test --coverage
+
+# Run tests in watch mode
+bun test --watch
 ```
-
-#### Comprehensive Test (Recommended before release)
-```bash
-./scripts/test-docker.sh
-```
-
-#### Manual Testing with Real Credentials
-```bash
-# Build the image
-docker build -t discord-tracker-action:test .
-
-# Test with your Discord bot token and channel ID
-docker run --rm \
-  -e GITHUB_OUTPUT=/tmp/output \
-  -v /tmp/output:/tmp/output \
-  discord-tracker-action:test \
-  init "123" "Test PR" "username" "owner/repo" "main" "1" "1" "Test" "success" "{}" "" "YOUR_BOT_TOKEN" "YOUR_CHANNEL_ID"
-```
-
-#### Automated Testing
-The repository includes GitHub Actions workflows that automatically test the Docker image on every pull request and push to main.
-
-### Automated Version Management
-
-The repository uses a fully automated GitHub Actions workflow for version management:
-
-#### Automatic Workflow
-- **Automatic on push to main**: Automatically syncs to `v1` branch
-- **Manual trigger**: Go to Actions → Version Manager → Run workflow
-- **Custom versions**: Specify version (v1, v2, v3) in workflow inputs
-- **Validation**: Checks version format and branch status
-- **GitHub releases**: Creates releases automatically
-
-#### How It Works
-1. **Develop on main**: All development happens on the `main` branch
-2. **Automatic sync**: Pushing to `main` automatically syncs to `v1`
-3. **Docker build**: Triggers automatic Docker image build
-4. **Integration tests**: Runs comprehensive tests
-5. **Publish**: Publishes to GitHub Container Registry
-
-#### Manual Release (Optional)
-For custom versions or manual releases:
-1. Go to **Actions** tab
-2. Select **Version Manager** workflow
-3. Click **Run workflow**
-4. Specify version (e.g., v2, v3)
-5. Click **Run workflow**
 
 ### Project Structure
 
@@ -409,17 +368,23 @@ For custom versions or manual releases:
 discord-tracker/
 ├── action.yml                 # GitHub Action definition
 ├── Dockerfile                 # Docker container configuration
-├── Cargo.toml                 # Rust dependencies and metadata
-├── src/                       # Rust source code
-│   ├── main.rs               # GitHub Action entry point
-│   ├── lib.rs                # Library exports
-│   ├── discord_api.rs        # Discord API client
-│   ├── pipeline_tracker.rs   # Pipeline tracking logic
-│   ├── message_builder.rs    # Discord embed builder
-│   ├── models.rs             # Data structures
-│   ├── error.rs              # Error handling
-│   ├── storage.rs            # Message storage
-│   └── validation.rs         # Input validation
+├── package.json               # Bun dependencies and metadata
+├── bun.lock                   # Bun lock file
+├── src/                       # TypeScript source code
+│   ├── main.ts               # GitHub Action entry point
+│   ├── index.ts              # Library exports
+│   ├── discordApi.ts         # Discord API client
+│   ├── pipelineTracker.ts    # Pipeline tracking logic
+│   ├── messageBuilder.ts     # Discord embed builder
+│   ├── models.ts             # Data structures
+│   ├── error.ts              # Error handling
+│   ├── storage.ts            # Message storage
+│   ├── validation.ts         # Input validation
+│   └── tests/                # Test files
+│       ├── validation.test.ts
+│       ├── messageBuilder.test.ts
+│       ├── discordApi.test.ts
+│       └── pipelineTracker.test.ts
 ├── .github/workflows/        # GitHub workflows
 │   ├── docker-publish.yml    # Build and publish Docker image
 │   ├── integration_tests.yml # Test the action
@@ -467,5 +432,4 @@ If you encounter any issues or have questions, please:
 ### v1.0.0
 - Initial release
 - Support for pipeline initialization, step updates, completion, and failure handling
-- Rich Discord embeds with progress tracking
-- Comprehensive error handling and logging 
+- Rich Discord embeds with progress tracking 

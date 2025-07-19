@@ -31499,7 +31499,7 @@ var require_follow_redirects = __commonJS({
 });
 
 // dist/index.js
-var core = __toESM(require_core(), 1);
+var core = __toESM(require_core());
 
 // node_modules/axios/lib/helpers/bind.js
 function bind(fn, thisArg) {

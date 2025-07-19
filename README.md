@@ -369,8 +369,27 @@ discord-tracker/
 │   ├── integration_tests.yml # Test the action
 │   └── example.yml           # Example usage
 └── scripts/                  # Development scripts
-    └── dev-setup.sh          # Local development setup
+    ├── dev-setup.sh          # Local development setup
+    └── release.sh            # Release automation script
 ```
+
+### Branch Strategy
+
+This action follows the standard GitHub Action branch strategy:
+
+- **`main` branch**: Development, features, bug fixes
+- **`v1` branch**: Production releases (semantic versioning)
+
+**Maintenance Workflow:**
+1. Develop on `main` branch
+2. Test changes locally
+3. Run `./scripts/release.sh` to release
+4. Script automatically merges `main` → `v1` and triggers build
+
+**For Major Version Updates:**
+- Create `v2`, `v3` branches for breaking changes
+- Update `action.yml` to point to new version
+- Maintain backward compatibility
 
 ## Contributing
 

@@ -63,6 +63,15 @@ export class PipelineTracker {
     }
     /// Updates a step in the pipeline
     async updateStep(stepNumber, totalSteps, stepName, status, additionalInfo) {
+        // Load state from storage first (critical for GitHub Actions)
+        try {
+            await this.loadState();
+        }
+        catch (error) {
+            console.error('Failed to load pipeline state:', error);
+            // Continue with current in-memory state if loading fails
+            // This allows the system to continue operating even if state loading fails
+        }
         if (stepNumber <= 0 || totalSteps <= 0 || stepNumber > totalSteps) {
             throw TrackerError.invalidStepNumber(stepNumber);
         }

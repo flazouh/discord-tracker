@@ -35273,6 +35273,11 @@ var PipelineTracker = class {
   }
   /// Updates a step in the pipeline
   async updateStep(stepNumber, totalSteps, stepName, status, additionalInfo) {
+    try {
+      await this.loadState();
+    } catch (error2) {
+      console.error("Failed to load pipeline state:", error2);
+    }
     if (stepNumber <= 0 || totalSteps <= 0 || stepNumber > totalSteps) {
       throw TrackerError.invalidStepNumber(stepNumber);
     }

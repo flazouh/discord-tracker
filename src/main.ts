@@ -1,5 +1,6 @@
-import { PipelineTracker } from './pipeline_tracker'; // Assuming PipelineTracker will be converted to TS
-import { TrackerError } from './error'; // Assuming TrackerError will be converted to TS
+import { PipelineTracker } from './pipelineTracker';
+import { TrackerError } from './error';
+import { FileStorage } from './storage';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -55,9 +56,10 @@ async function main() {
 
   let tracker: PipelineTracker;
   try {
-    // Assuming PipelineTracker constructor takes botToken and channelId
-    tracker = new PipelineTracker(botToken, channelId);
-    console.info('Pipeline tracker initialized');
+    // Initialize tracker with file storage for consistency with index.ts
+    const storage = new FileStorage();
+    tracker = new PipelineTracker(botToken, channelId, storage);
+    console.info('Pipeline tracker initialized with file storage');
   } catch (e: any) {
     const errorMsg = `Failed to create pipeline tracker: ${e.message}`;
     console.error(`Error: ${errorMsg}`);

@@ -1,4 +1,5 @@
-import { PipelineTracker } from './pipeline_tracker'; // Assuming PipelineTracker will be converted to TS
+import { PipelineTracker } from './pipelineTracker';
+import { FileStorage } from './storage';
 import * as fs from 'fs';
 import * as path from 'path';
 // Placeholder for PipelineTracker and its methods. These will need to be implemented in TypeScript.
@@ -33,9 +34,10 @@ async function main() {
     const [action, prNumber, prTitle, author, repository, branch, stepNumber, totalSteps, stepName, status, additionalInfo, errorMessage, botToken, channelId,] = args;
     let tracker;
     try {
-        // Assuming PipelineTracker constructor takes botToken and channelId
-        tracker = new PipelineTracker(botToken, channelId);
-        console.info('Pipeline tracker initialized');
+        // Initialize tracker with file storage for consistency with index.ts
+        const storage = new FileStorage();
+        tracker = new PipelineTracker(botToken, channelId, storage);
+        console.info('Pipeline tracker initialized with file storage');
     }
     catch (e) {
         const errorMsg = `Failed to create pipeline tracker: ${e.message}`;

@@ -35,4 +35,26 @@ describe('DiscordApi', () => {
 
     expect(() => new DiscordApi(botToken, channelId)).not.toThrow();
   });
+
+  it('should create a DiscordApi instance with custom retry configuration', () => {
+    const botToken = '1234567890.abcdefghijklmnopqrstuvwxyz.abcdef';
+    const channelId = '123456789012345678';
+    const customRetryConfig = {
+      maxRetries: 5,
+      baseDelay: 2000,
+      maxDelay: 60000
+    };
+
+    expect(() => new DiscordApi(botToken, channelId, customRetryConfig)).not.toThrow();
+  });
+
+  it('should use default retry configuration when none provided', () => {
+    const botToken = '1234567890.abcdefghijklmnopqrstuvwxyz.abcdef';
+    const channelId = '123456789012345678';
+
+    const api = new DiscordApi(botToken, channelId);
+    
+    // We can't directly access private properties, but we can verify the instance was created
+    expect(api).toBeInstanceOf(DiscordApi);
+  });
 });

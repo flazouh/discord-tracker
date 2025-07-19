@@ -34885,10 +34885,6 @@ function validateChannelId(channelId) {
   if (channelId.trim().length === 0) {
     throw TrackerError.missingRequiredInput("discord_channel_id");
   }
-  const channelIdPattern = /^\d{17,19}$/;
-  if (!channelIdPattern.test(channelId)) {
-    throw new TrackerError("Invalid Discord channel ID format", "INVALID_CHANNEL_ID");
-  }
 }
 
 // dist/discordApi.js

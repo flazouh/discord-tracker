@@ -61,13 +61,13 @@ jobs:
           npm version $NEW_VERSION --no-git-tag-version
           echo "Updated package.json to version $NEW_VERSION"
 
-      - name: Commit version bump
+      - name: Commit version bump and build
         run: |
           NEW_VERSION="${{ steps.new-version.outputs.new_version }}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add package.json
-          git commit -m "chore: bump version to $NEW_VERSION [skip actions]"
+          git add package.json dist/
+          git commit -m "chore: bump version to $NEW_VERSION and build [skip actions]"
           git push origin main
 
       - name: Create and push tag

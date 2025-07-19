@@ -3,33 +3,9 @@ name: Version Manager
 on:
   push:
     branches: [main]
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version to release (e.g., v1, v2)'
-        required: true
-        default: 'v1'
-      auto_merge:
-        description: 'Automatically merge to version branch'
-        required: false
-        default: 'true'
 
 jobs:
-  validate:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Validate version format
-        run: |
-          VERSION="${{ github.event.inputs.version || 'v1' }}"
-          if [[ ! $VERSION =~ ^v[0-9]+$ ]]; then
-            echo "❌ Invalid version format. Must be v1, v2, v3, etc."
-            exit 1
-          fi
-          echo "✅ Version format is valid: $VERSION"
-
   sync-version:
-    needs: validate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,12 +13,16 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Get version
+      - name: Get version from Cargo.toml
         id: version
         run: |
-          VERSION="${{ github.event.inputs.version || 'v1' }}"
+          # Extract major version from Cargo.toml
+          CARGO_VERSION=$(grep '^version = ' Cargo.toml | cut -d'"' -f2)
+          MAJOR_VERSION=$(echo $CARGO_VERSION | cut -d'.' -f1)
+          VERSION="v$MAJOR_VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Using version: $VERSION"
+          echo "cargo_version=$CARGO_VERSION" >> $GITHUB_OUTPUT
+          echo "Using version: $VERSION (from Cargo.toml version: $CARGO_VERSION)"
 
       - name: Check if version branch exists
         id: branch-check
@@ -75,24 +55,33 @@ jobs:
           git push origin $VERSION
           echo "✅ Successfully pushed $VERSION branch"
 
-      - name: Create release
-        if: github.event_name == 'workflow_dispatch'
+      - name: Create or update release
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          gh release create $VERSION \
-            --title "Release $VERSION" \
-            --notes "Automated release for version $VERSION" \
-            --target $VERSION
+          CARGO_VERSION="${{ steps.version.outputs.cargo_version }}"
+          
+          # Check if release already exists
+          if gh release view $VERSION &>/dev/null; then
+            echo "Updating existing release: $VERSION"
+            gh release edit $VERSION \
+              --title "Release $VERSION" \
+              --notes "Automated release for Discord Tracker Action v$CARGO_VERSION" \
+              --target $VERSION
+          else
+            echo "Creating new release: $VERSION"
+            gh release create $VERSION \
+              --title "Release $VERSION" \
+              --notes "Automated release for Discord Tracker Action v$CARGO_VERSION" \
+              --target $VERSION
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  notify:
-    needs: sync-version
-    runs-on: ubuntu-latest
-    steps:
       - name: Notify completion
         run: |
-          VERSION="${{ github.event.inputs.version || 'v1' }}"
+          VERSION="${{ steps.version.outputs.version }}"
+          CARGO_VERSION="${{ steps.version.outputs.cargo_version }}"
           echo "🎉 Version $VERSION has been successfully synchronized!"
+          echo "📦 Cargo version: $CARGO_VERSION"
           echo "📦 Docker build will be triggered automatically"
           echo "🧪 Integration tests will run after build completion" 

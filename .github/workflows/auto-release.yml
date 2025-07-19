@@ -30,7 +30,23 @@ jobs:
         run: bun install
 
       - name: Build action
-        run: bun run build
+        run: |
+          echo "🔨 Building action..."
+          bun run build
+          
+          # CRITICAL: Verify build output
+          if [ ! -f "dist/index.js" ]; then
+            echo "❌ BUILD FAILED: dist/index.js not found!"
+            exit 1
+          fi
+          
+          FILE_SIZE=$(stat -f%z dist/index.js 2>/dev/null || stat -c%s dist/index.js 2>/dev/null || echo "0")
+          if [ "$FILE_SIZE" -lt 1000000 ]; then
+            echo "❌ BUILD FAILED: dist/index.js is too small ($FILE_SIZE bytes)!"
+            exit 1
+          fi
+          
+          echo "✅ Build successful - dist/index.js created ($FILE_SIZE bytes)"
 
       - name: Get current version
         id: current-version
@@ -66,7 +82,25 @@ jobs:
           NEW_VERSION="${{ steps.new-version.outputs.new_version }}"
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add package.json dist/
+          
+          # CRITICAL: Always include built files in the commit
+          git add package.json
+          git add dist/
+          
+          # Verify that dist/index.js exists before committing
+          if [ ! -f "dist/index.js" ]; then
+            echo "❌ ERROR: dist/index.js not found! Build failed!"
+            exit 1
+          fi
+          
+          # Check file size to ensure it's properly built
+          FILE_SIZE=$(stat -f%z dist/index.js 2>/dev/null || stat -c%s dist/index.js 2>/dev/null || echo "0")
+          if [ "$FILE_SIZE" -lt 1000000 ]; then
+            echo "❌ ERROR: dist/index.js is too small ($FILE_SIZE bytes). Build may have failed!"
+            exit 1
+          fi
+          
+          echo "✅ dist/index.js exists and is properly sized ($FILE_SIZE bytes)"
           git commit -m "chore: bump version to $NEW_VERSION and build [skip actions]"
           git push origin main
 
@@ -85,6 +119,24 @@ jobs:
             echo "Created and pushed tag: $TAG_VERSION"
             echo "tag_exists=false" >> $GITHUB_OUTPUT
           fi
+          
+          # CRITICAL: Verify that the tag contains the built files
+          echo "🔍 Verifying tag contains built files..."
+          git checkout $TAG_VERSION
+          if [ ! -f "dist/index.js" ]; then
+            echo "❌ CRITICAL ERROR: Tag $TAG_VERSION does not contain dist/index.js!"
+            echo "❌ This will cause 'File not found' errors in CI/CD pipelines!"
+            exit 1
+          fi
+          
+          FILE_SIZE=$(stat -f%z dist/index.js 2>/dev/null || stat -c%s dist/index.js 2>/dev/null || echo "0")
+          if [ "$FILE_SIZE" -lt 1000000 ]; then
+            echo "❌ CRITICAL ERROR: Tag $TAG_VERSION contains invalid dist/index.js ($FILE_SIZE bytes)!"
+            exit 1
+          fi
+          
+          echo "✅ Tag $TAG_VERSION verified - contains valid dist/index.js ($FILE_SIZE bytes)"
+          git checkout main
 
       - name: Update latest tag
         run: |
@@ -92,6 +144,19 @@ jobs:
           git tag -f latest $TAG_VERSION
           git push origin latest --force
           echo "Updated latest tag to point to $TAG_VERSION"
+          
+          # CRITICAL: Final verification that latest tag contains built files
+          echo "🔍 Final verification of latest tag..."
+          git checkout latest
+          if [ ! -f "dist/index.js" ]; then
+            echo "❌ CRITICAL ERROR: Latest tag does not contain dist/index.js!"
+            echo "❌ This will break all CI/CD pipelines using @latest!"
+            exit 1
+          fi
+          
+          FILE_SIZE=$(stat -f%z dist/index.js 2>/dev/null || stat -c%s dist/index.js 2>/dev/null || echo "0")
+          echo "✅ Latest tag verified - contains dist/index.js ($FILE_SIZE bytes)"
+          git checkout main
 
       - name: Create GitHub release
         run: |
